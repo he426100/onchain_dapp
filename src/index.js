@@ -31,7 +31,6 @@ import UniversalProvider from '@walletconnect/universal-provider';
 import ecc from '@bitcoinerlab/secp256k1';
 import bitcoin from 'bitcoinjs-lib';
 import { ApiPromise, WsProvider } from '@polkadot/api'
-import * as CardanoWasm from '@emurgo/cardano-serialization-lib-browser';
 window.Buffer = Buffer;
 window.Polkadot = { WsProvider, ApiPromise };
 window.mainnet = mainnet;
@@ -49,7 +48,7 @@ window.Cosmos = {
     encodeSecp256k1Pubkey,
     TxRaw
 }
-window.CardanoWasm = CardanoWasm
+
 window.XRPL = {
     Client, decode
 }/// TransactionWitnessSet

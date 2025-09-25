@@ -133,4 +133,14 @@ const monero = { moneroCaip2, moneroWsTestnetNetwork }
 const cardanoCaip2 = "cip34";
 const cardanoWsPreprodNetwork = "cip34:0-1"
 const cardano = { cardanoCaip2, cardanoWsPreprodNetwork }
-export { ethereum, tron, aptos, solana, sui, stellar, ton, btc, cosmos, polkadot, xrp, monero, cardano };
+
+const filecoinCaip2 = "fil";
+const filecoinMainnet = "fil:f"
+const filecoinTestnet = "fil:t"
+const filecoinEvmMainnet = "eip155:314"
+const filecoinEvmTestnet = "eip155:314159"
+const filecoinWsMainnet = "filecoin:mainnet"
+const filecoinWsTestnet = "filecoin:testnet"
+const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
+
+export { ethereum, tron, aptos, solana, sui, stellar, ton, btc, cosmos, polkadot, xrp, monero, cardano, fil };

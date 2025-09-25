@@ -13,6 +13,17 @@ import {
 } from "@cosmjs/proto-signing";
 import { Client, decode } from 'xrpl';
 import { coins, encodeSecp256k1Pubkey } from "@cosmjs/amino";
+import * as FilecoinWallet from 'iso-filecoin/wallet';
+import * as FilecoinMessage from 'iso-filecoin/message';
+import * as FilecoinToken from 'iso-filecoin/token';
+import * as FilecoinAddress from 'iso-filecoin/address';
+import * as FilecoinRPC from 'iso-filecoin/rpc';
+import * as FilecoinSignature from 'iso-filecoin/signature';
+import * as FilecoinUtils from 'iso-filecoin/utils';
+import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
+import { WalletAdapterHd } from 'iso-filecoin-wallets/hd';
+import { WalletAdapterLedger } from 'iso-filecoin-wallets/ledger';
+import { WalletAdapterRaw } from 'iso-filecoin-wallets/local';
 import { TxBody, AuthInfo, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx.js";
 import { Any } from "cosmjs-types/google/protobuf/any.js";
 import { mainnet, arbitrum } from '@reown/appkit/networks'
@@ -42,6 +53,22 @@ window.CardanoWasm = CardanoWasm
 window.XRPL = {
     Client, decode
 }/// TransactionWitnessSet
+
+window.Filecoin = {
+    Wallet: FilecoinWallet,
+    Message: FilecoinMessage,
+    Token: FilecoinToken,
+    Address: FilecoinAddress,
+    RPC: FilecoinRPC,
+    Signature: FilecoinSignature,
+    Utils: FilecoinUtils,
+    Adapters: {
+        Filsnap: WalletAdapterFilsnap,
+        Hd: WalletAdapterHd,
+        Ledger: WalletAdapterLedger,
+        Raw: WalletAdapterRaw
+    }
+}
 
 window.Sui = Sui
 window.aptosSDK = AptosSDK

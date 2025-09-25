@@ -42,6 +42,7 @@
     "browserify-zlib": "^0.2.0",
     "bunyan": "^1.8.15",
     "express": "^4.19.2",
+    "iso-filecoin": "^7.4.4",
     "path-browserify": "^1.0.1",
     "stream-http": "^3.2.0",
     "tiny-secp256k1": "^2.2.3",

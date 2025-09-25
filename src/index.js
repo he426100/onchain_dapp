@@ -1,5 +1,4 @@
 import { Buffer } from 'buffer';
-import * as AptosSDK from "@aptos-labs/ts-sdk";
 import * as Sui from "@mysten/sui/transactions";
 import * as SuiClient from "@mysten/sui/client";
 import { createAppKit } from '@reown/appkit'
@@ -70,9 +69,7 @@ window.Filecoin = {
 }
 
 window.Sui = Sui
-window.aptosSDK = AptosSDK
 window.SuiClient = SuiClient
 window.UniversalProvider = UniversalProvider;
 window.createAppKit = createAppKit;
-
 

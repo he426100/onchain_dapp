@@ -54,14 +54,6 @@ app.get('/wc_cosmos', (req, res) => {
 });
 
 
-///aptos
-app.get('/wc_aptos', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/aptos/wc_aptos.html'));
-});
-app.get('/ws_aptos', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/aptos/ws_aptos.html'));
-});
-
 /// bitcoin
 app.get('/wc_bitcoin', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/bitcoin/wc_bitcoin.html'));

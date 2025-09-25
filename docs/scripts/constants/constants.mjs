@@ -61,12 +61,6 @@ const tronWsShastaNetwork = "tron:0x94a9059e"
 const tron = { tronCaip2, tronShastaNetwork, tronWsShastaNetwork }
 
 
-/// aptos
-const aptosCaip2 = "aptos";
-const aptosTestnetNetwork = "aptos:testnet"
-const aptosWsTestnetNetwork = "aptos:testnet"
-const aptos = { aptosCaip2, aptosTestnetNetwork, aptosWsTestnetNetwork }
-
 /// solana
 
 const solanaCaip2 = "solana";
@@ -138,4 +132,4 @@ const filecoinWsMainnet = "filecoin:mainnet"
 const filecoinWsTestnet = "filecoin:testnet"
 const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
 
-export { ethereum, tron, aptos, solana, sui, stellar, ton, btc, cosmos, polkadot, xrp, monero, fil };
+export { ethereum, tron, solana, sui, stellar, ton, btc, cosmos, polkadot, xrp, monero, fil };

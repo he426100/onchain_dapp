@@ -99,3 +99,14 @@ app.get('/eip6963_ethereum', (req, res) => {
 app.get('/eip1193_ethereum', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/ethereum/eip1193_eth.html'));
 });
+
+// filecoin
+app.get('/ws_filecoin', (req, res) => {
+  res.sendFile(join(__dirname, 'docs', 'pages/filecoin/ws_filecoin.html'));
+});
+app.get('/wc_filecoin', (req, res) => {
+  res.sendFile(join(__dirname, 'docs', 'pages/filecoin/wc_filecoin.html'));
+});
+app.get('/adapter_filecoin', (req, res) => {
+  res.sendFile(join(__dirname, 'docs', 'pages/filecoin/adapter_filecoin.html'));
+});

@@ -1,17 +1,6 @@
 import { Buffer } from 'buffer';
-import * as Sui from "@mysten/sui/transactions";
-import * as SuiClient from "@mysten/sui/client";
 import { createAppKit } from '@reown/appkit'
-import { SigningStargateClient } from "@cosmjs/stargate";
-import {
-    Registry,
-    encodePubkey,
-    makeAuthInfoBytes,
-    makeSignDoc,
-    makeSignBytes,
-} from "@cosmjs/proto-signing";
 import { Client, decode } from 'xrpl';
-import { coins, encodeSecp256k1Pubkey } from "@cosmjs/amino";
 import * as FilecoinWallet from 'iso-filecoin/wallet';
 import * as FilecoinMessage from 'iso-filecoin/message';
 import * as FilecoinToken from 'iso-filecoin/token';
@@ -23,7 +12,6 @@ import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
 import { WalletAdapterHd } from 'iso-filecoin-wallets/hd';
 import { WalletAdapterLedger } from 'iso-filecoin-wallets/ledger';
 import { WalletAdapterRaw } from 'iso-filecoin-wallets/local';
-import { Any } from "cosmjs-types/google/protobuf/any.js";
 import { mainnet, arbitrum } from '@reown/appkit/networks'
 import UniversalProvider from '@walletconnect/universal-provider';
 import ecc from '@bitcoinerlab/secp256k1';
@@ -56,8 +44,6 @@ window.Filecoin = {
     }
 }
 
-window.Sui = Sui
-window.SuiClient = SuiClient
 window.UniversalProvider = UniversalProvider;
 window.createAppKit = createAppKit;
 

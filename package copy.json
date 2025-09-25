@@ -17,7 +17,6 @@
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@cosmjs/crypto": "^0.33.1",
     "@cosmjs/stargate": "^0.33.1",
-    "@mysten/sui": "^1.26.1",
     "@open-rpc/typings": "^1.10.0",
     "@polkadot/api": "^15.9.1",
     "@polkadot/extension-dapp": "^0.58.7",

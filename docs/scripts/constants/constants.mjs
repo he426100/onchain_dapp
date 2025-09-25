@@ -69,12 +69,6 @@ const solanaWsDevnetNetwork = "solana:devnet"
 const solanaMainnetNetwork = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
 const solana = { solanaCaip2, solanaDevnetNetwork, solanaMainnetNetwork, solanaWsDevnetNetwork }
 
-const suiCaip2 = "sui";
-const suiTestnetNetwork = "sui:testnet"
-const suiWsTestnetNetwork = "sui:testnet"
-const sui = { suiCaip2, suiTestnetNetwork, suiWsTestnetNetwork }
-
-
 
 const stellarCaip2 = "stellar";
 const stellarTestnetNetwork = "stellar:testnet"
@@ -119,4 +113,4 @@ const filecoinWsMainnet = "filecoin:mainnet"
 const filecoinWsTestnet = "filecoin:testnet"
 const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
 
-export { ethereum, tron, solana, sui, stellar, ton, btc, polkadot, xrp, fil };
+export { ethereum, tron, solana, stellar, ton, btc, polkadot, xrp, fil };

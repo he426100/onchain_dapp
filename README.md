@@ -1,1 +1,1 @@
-Guides for sending Web3 transactions to the OnChain Wallet using EIP-1193, EIP-6963, TIP-1193, Wallet Standard, and WalletConnect — supporting Bitcoin, Tron, Ethereum, Sui, TON, Stellar, Bitcoin Cash, Substrate, and more.
+Guides for sending Web3 transactions to the OnChain Wallet using EIP-1193, EIP-6963, TIP-1193, Wallet Standard, and WalletConnect — supporting Bitcoin, Tron, Ethereum, TON, Stellar, Bitcoin Cash, Substrate, and more.

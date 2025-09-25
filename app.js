@@ -96,14 +96,6 @@ app.get('/ws_solana', (req, res) => {
 app.get('/wc_solana', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/solana/wc_solana.html'));
 });
-//sui
-app.get('/ws_sui', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/sui/ws_sui.html'));
-});
-app.get('/wc_sui', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/sui/wc_sui.html'));
-});
-
 
 // ethereum
 app.get('/ws_ethereum', (req, res) => {

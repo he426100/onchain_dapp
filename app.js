@@ -52,22 +52,11 @@ app.get('/wc_bch', (req, res) => {
 app.get('/ws_bch', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/bch/ws_bch.html'));
 });
-/// stellar
-app.get('/ws_stellar', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/stellar/ws_stellar.html'));
-});
-app.get('/wc_stellar', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/stellar/wc_stellar.html'));
-});
 
 /// ripple
 app.get('/ws_ripple', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/ripple/ws_ripple.html'));
 });
-// app.get('/wc_stellar', (req, res) => {
-//   res.sendFile(join(__dirname, 'docs', 'pages/stellar/wc_stellar.html'));
-// });
-
 
 // ton
 app.get('/ws_ton', (req, res) => {

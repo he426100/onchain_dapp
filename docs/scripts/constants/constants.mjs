@@ -110,11 +110,6 @@ const xrpWsTestnetNetwork = "xrpl:1"
 const xrp = { xrpCaip2, xrpWsTestnetNetwork }
 
 
-const moneroCaip2 = "monero";
-const moneroWsTestnetNetwork = "monero:76ee3cc98646292206cd3e86f74d88b4"
-const monero = { moneroCaip2, moneroWsTestnetNetwork }
-
-
 const filecoinCaip2 = "fil";
 const filecoinMainnet = "fil:f"
 const filecoinTestnet = "fil:t"
@@ -124,4 +119,4 @@ const filecoinWsMainnet = "filecoin:mainnet"
 const filecoinWsTestnet = "filecoin:testnet"
 const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
 
-export { ethereum, tron, solana, sui, stellar, ton, btc, polkadot, xrp, monero, fil };
+export { ethereum, tron, solana, sui, stellar, ton, btc, polkadot, xrp, fil };

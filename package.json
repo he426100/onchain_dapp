@@ -16,6 +16,7 @@
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@open-rpc/typings": "^1.12.0",
+    "@phosphor-icons/webcomponents": "^2.1.5",
     "@reown/appkit": "^1.7.9",
     "@reown/appkit-adapter-wagmi": "^1.7.9",
     "@reown/walletkit": "^1.2.5",
@@ -34,7 +35,9 @@
     "browserify-zlib": "^0.2.0",
     "bunyan": "^1.8.15",
     "express": "^4.19.2",
+    "filsnap-adapter": "^3.3.6",
     "iso-filecoin": "^7.4.4",
+    "iso-filecoin-wallets": "^1.2.0",
     "path-browserify": "^1.0.1",
     "stream-http": "^3.2.0",
     "tiny-secp256k1": "^2.2.3",

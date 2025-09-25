@@ -38,22 +38,6 @@ app.get('/tronweb', (req, res) => {
   });
 });
 
-
-
-
-
-
-
-/// cosmos
-
-app.get('/ws_cosmos', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/cosmos/ws_cosmos.html'));
-});
-app.get('/wc_cosmos', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/cosmos/wc_cosmos.html'));
-});
-
-
 /// bitcoin
 app.get('/wc_bitcoin', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/bitcoin/wc_bitcoin.html'));

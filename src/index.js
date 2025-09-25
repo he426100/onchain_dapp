@@ -23,7 +23,6 @@ import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
 import { WalletAdapterHd } from 'iso-filecoin-wallets/hd';
 import { WalletAdapterLedger } from 'iso-filecoin-wallets/ledger';
 import { WalletAdapterRaw } from 'iso-filecoin-wallets/local';
-import { TxBody, AuthInfo, TxRaw } from "cosmjs-types/cosmos/tx/v1beta1/tx.js";
 import { Any } from "cosmjs-types/google/protobuf/any.js";
 import { mainnet, arbitrum } from '@reown/appkit/networks'
 import UniversalProvider from '@walletconnect/universal-provider';
@@ -36,17 +35,6 @@ window.mainnet = mainnet;
 window.ecc = ecc;
 bitcoin.initEccLib(ecc);
 window.bitcoin = bitcoin;
-window.Cosmos = {
-    SigningStargateClient, Registry,
-    encodePubkey,
-    makeAuthInfoBytes,
-    makeSignDoc,
-    coins,
-    TxBody, AuthInfo,
-    Any, makeSignBytes,
-    encodeSecp256k1Pubkey,
-    TxRaw
-}
 
 window.XRPL = {
     Client, decode

@@ -70,14 +70,6 @@ const solanaMainnetNetwork = "solana:5eykt4UsFv8P8NJdTREpY1vzqKqZKvdp"
 const solana = { solanaCaip2, solanaDevnetNetwork, solanaMainnetNetwork, solanaWsDevnetNetwork }
 
 
-const tonCaip2 = "tvm";
-const tonTestnetNetwork = "tvm:-3"
-const tonWsTestnetNetwork = "tvm:-3"
-const ton = { tonCaip2, tonTestnetNetwork, tonWsTestnetNetwork }
-
-
-
-
 const bitcoinCaip2 = "bip122";
 const bchCaip2 = "bch";
 const bitcoinTestnet4Network = "bip122:00000000da84f2bafbbc53dee25a72ae"
@@ -101,4 +93,4 @@ const filecoinWsMainnet = "filecoin:mainnet"
 const filecoinWsTestnet = "filecoin:testnet"
 const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
 
-export { ethereum, tron, solana, ton, btc, xrp, fil };
+export { ethereum, tron, solana, btc, xrp, fil };

@@ -58,14 +58,6 @@ app.get('/ws_ripple', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/ripple/ws_ripple.html'));
 });
 
-// ton
-app.get('/ws_ton', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/ton/ws_ton.html'));
-});
-app.get('/wc_ton', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/ton/wc_ton.html'));
-});
-
 // tron
 app.get('/ws_tron', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/tron/ws_tron.html'));

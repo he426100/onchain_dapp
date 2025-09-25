@@ -16,9 +16,7 @@ import { mainnet, arbitrum } from '@reown/appkit/networks'
 import UniversalProvider from '@walletconnect/universal-provider';
 import ecc from '@bitcoinerlab/secp256k1';
 import bitcoin from 'bitcoinjs-lib';
-import { ApiPromise, WsProvider } from '@polkadot/api'
 window.Buffer = Buffer;
-window.Polkadot = { WsProvider, ApiPromise };
 window.mainnet = mainnet;
 window.ecc = ecc;
 bitcoin.initEccLib(ecc);

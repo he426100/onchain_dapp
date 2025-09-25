@@ -99,11 +99,3 @@ app.get('/eip6963_ethereum', (req, res) => {
 app.get('/eip1193_ethereum', (req, res) => {
   res.sendFile(join(__dirname, 'docs', 'pages/ethereum/eip1193_eth.html'));
 });
-
-/// substrate
-app.get('/ws_substrate', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/substrate/ws_substrate.html'));
-});
-app.get('/wc_substrate', (req, res) => {
-  res.sendFile(join(__dirname, 'docs', 'pages/substrate/wc_substrate.html'));
-});

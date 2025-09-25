@@ -86,12 +86,6 @@ const bitcoinWsTestnet4Network = "bitcoin:testnet4"
 const bchCaip2Testnet = "bch:bchtest"
 const btc = { bitcoinCaip2, bitcoinTestnet4Network, bitcoinWsTestnet4Network,  bchCaip2Testnet, bchCaip2 }
 
-const substrateCaip2 = "polkadot";
-const substrateWestendNetwork = "polkadot:67f9723393ef76214df0118c34bbbd3d"
-const substrateWsWestendNetwork = "polkadot:67f9723393ef76214df0118c34bbbd3d"
-const polkadot = { substrateCaip2, substrateWestendNetwork, substrateWsWestendNetwork }
-
-
 const xrpCaip2 = "xrpl";
 const xrpWsTestnetNetwork = "xrpl:1"
 
@@ -107,4 +101,4 @@ const filecoinWsMainnet = "filecoin:mainnet"
 const filecoinWsTestnet = "filecoin:testnet"
 const fil = { filecoinCaip2, filecoinMainnet, filecoinTestnet, filecoinEvmMainnet, filecoinEvmTestnet, filecoinWsMainnet, filecoinWsTestnet }
 
-export { ethereum, tron, solana, ton, btc, polkadot, xrp, fil };
+export { ethereum, tron, solana, ton, btc, xrp, fil };

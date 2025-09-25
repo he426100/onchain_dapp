@@ -16,8 +16,6 @@
   "dependencies": {
     "@bitcoinerlab/secp256k1": "^1.2.0",
     "@open-rpc/typings": "^1.10.0",
-    "@polkadot/api": "^15.9.1",
-    "@polkadot/extension-dapp": "^0.58.7",
     "@reown/appkit": "^1.7.9",
     "@reown/appkit-adapter-wagmi": "^1.7.9",
     "@reown/walletkit": "^1.2.5",

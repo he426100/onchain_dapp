@@ -142,12 +142,42 @@ async function getBalance() {
   })
 }
 async function disconnect() {
-  const { provider } = await connect();
+  const provider = getEIPWallet();
   await utils.runMethod({
     method: "disconnect",
     asyncFunc: async function name() {
-      const disconnect = await provider.disconnect();
-      return disconnect;
+      // 1. OnChain wallet specific disconnect
+      if (provider.isOnChain && typeof provider.disconnect === 'function') {
+        return await provider.disconnect();
+      }
+
+      // 2. Wallet Standard disconnect (WebSocket style)
+      if (provider.features && provider.features["ethereum:disconnect"]) {
+        return await provider.features["ethereum:disconnect"].disconnect();
+      }
+
+      // 3. Direct disconnect method (WalletConnect style)
+      if (typeof provider.disconnect === 'function') {
+        await provider.disconnect();
+        return "Provider disconnected";
+      }
+
+      // 4. For MetaMask and other standard wallets - revoke permissions
+      try {
+        await provider.request({
+          method: 'wallet_revokePermissions',
+          params: [{ eth_accounts: {} }]
+        });
+        return "Permissions revoked";
+      } catch (error) {
+        // If revokePermissions not supported, emit disconnect events
+        if (provider.emit && typeof provider.emit === 'function') {
+          provider.emit('accountsChanged', []);
+          provider.emit('disconnect', { code: 4100, reason: 'User initiated disconnect' });
+          return "Disconnect events emitted";
+        }
+        return "Cannot disconnect - manual disconnection required in wallet";
+      }
     }
   })
 }

@@ -8,7 +8,7 @@ import * as FilecoinAddress from 'iso-filecoin/address';
 import * as FilecoinRPC from 'iso-filecoin/rpc';
 import * as FilecoinSignature from 'iso-filecoin/signature';
 import * as FilecoinUtils from 'iso-filecoin/utils';
-import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
+// import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
 import { WalletAdapterHd } from 'iso-filecoin-wallets/hd';
 import { WalletAdapterLedger } from 'iso-filecoin-wallets/ledger';
 import { WalletAdapterRaw } from 'iso-filecoin-wallets/local';
@@ -35,7 +35,7 @@ window.Filecoin = {
     Signature: FilecoinSignature,
     Utils: FilecoinUtils,
     Adapters: {
-        Filsnap: WalletAdapterFilsnap,
+        // Filsnap: WalletAdapterFilsnap, // Temporarily disabled due to import issues
         Hd: WalletAdapterHd,
         Ledger: WalletAdapterLedger,
         Raw: WalletAdapterRaw

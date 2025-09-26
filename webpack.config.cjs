@@ -27,6 +27,10 @@ module.exports = {
         ],
     },
     resolve: {
+        alias: {
+            // Provide a fallback for the missing RetryError export
+            'iso-web/http': path.resolve(__dirname, 'webpack-shims/iso-web-http.js'),
+        },
         fallback: {
             buffer: require.resolve('buffer/'),
             url: require.resolve('url/'),

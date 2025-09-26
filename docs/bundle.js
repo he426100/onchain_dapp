@@ -79697,27 +79697,6 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 /***/ }),
 
-/***/ "./node_modules/filsnap-adapter/dist/src/index.js":
-/*!********************************************************!*\
-  !*** ./node_modules/filsnap-adapter/dist/src/index.js ***!
-  \********************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* empty/unused harmony star reexport */
-/* empty/unused harmony star reexport */
-/* empty/unused harmony star reexport */
-Object(function webpackMissingModule() { var e = new Error("Cannot find module './snap'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-Object(function webpackMissingModule() { var e = new Error("Cannot find module './utils'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-Object(function webpackMissingModule() { var e = new Error("Cannot find module './connector'"); e.code = 'MODULE_NOT_FOUND'; throw e; }());
-
-
-
-//# sourceMappingURL=index.js.map
-
-/***/ }),
-
 /***/ "./node_modules/idb-keyval/dist/index.js":
 /*!***********************************************!*\
   !*** ./node_modules/idb-keyval/dist/index.js ***!
@@ -80970,334 +80949,6 @@ const WalletSupport = /** @type {const} */ ({
   NotDetected: 'NotDetected',
   NotSupported: 'NotSupported',
 })
-
-
-/***/ }),
-
-/***/ "./node_modules/iso-filecoin-wallets/src/filsnap.js":
-/*!**********************************************************!*\
-  !*** ./node_modules/iso-filecoin-wallets/src/filsnap.js ***!
-  \**********************************************************/
-/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
-
-"use strict";
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   WalletAdapterFilsnap: () => (/* binding */ WalletAdapterFilsnap)
-/* harmony export */ });
-/* harmony import */ var filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! filsnap-adapter */ "./node_modules/filsnap-adapter/dist/src/index.js");
-/* harmony import */ var iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! iso-base/rfc4648 */ "./node_modules/iso-base/src/rfc4648.js");
-/* harmony import */ var iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! iso-filecoin/signature */ "./node_modules/iso-filecoin/src/signature.js");
-/* harmony import */ var iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! iso-filecoin/utils */ "./node_modules/iso-filecoin/src/utils.js");
-/* harmony import */ var iso_web_event_target__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! iso-web/event-target */ "./node_modules/iso-web/src/event-target/index.js");
-/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! nanoid */ "./node_modules/iso-filecoin-wallets/node_modules/nanoid/index.browser.js");
-/* harmony import */ var _common_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./common.js */ "./node_modules/iso-filecoin-wallets/src/common.js");
-
-
-
-
-
-
-
-
-/**
- * @import { WalletAdapter, WalletEvents, WalletConfig, WalletSupportType } from './types.js'
- */
-
-/**
- * @typedef {import('iso-filecoin/types').IAccountWithPath} IAccount
- * @typedef {import('iso-filecoin/types').Network} Network
- * @typedef {import('iso-filecoin/types').MessageObj} MessageObj
- * @typedef {import('iso-filecoin/types').SignatureType} SignatureType
- */
-
-const symbol = Symbol.for('wallet-adapter-filsnap')
-
-/**
- * Filsnap wallet implementation
- *
- * @implements {WalletAdapter} - {@link WalletAdapter}
- * @extends {TypedEventTarget<WalletEvents>}
- */
-class WalletAdapterFilsnap extends iso_web_event_target__WEBPACK_IMPORTED_MODULE_4__.TypedEventTarget {
-  /** @type {boolean} */
-  [symbol] = true
-  uid = `filsnap-${(0,nanoid__WEBPACK_IMPORTED_MODULE_5__.nanoid)(5)}`
-  id = 'filsnap'
-  name = 'Filsnap'
-  url = 'https://snaps.metamask.io/snap/npm/filsnap/'
-
-  /**@type {IAccount | undefined}*/
-  account = undefined
-
-  /** @type {boolean} */
-  #isConnecting
-
-  /** @type {import('filsnap-adapter').FilsnapAdapter | undefined} */
-  filsnap
-
-  /** @type {number} */
-  #index
-
-  /** @type {ReturnType<createConnector>|undefined} */
-  #connector
-
-  /** @type {import('filsnap-adapter').EIP1193Provider | undefined} */
-  #provider
-
-  /** @type {WalletSupportType} */
-  #support =
-    typeof window === 'undefined' || typeof document === 'undefined'
-      ? _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotSupported
-      : _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotChecked
-
-  /**
-   *
-   * @param {WalletConfig & ({version?: string, index?: number, syncWithProvider?: boolean} )} config
-   */
-  constructor(config = {}) {
-    super()
-    this.name = config.name ?? this.name
-    this.#index = config.index ?? 0
-    this.#isConnecting = false
-    this.version = config.version
-    this.network = config.network ?? 'mainnet'
-    this.signatureType = config.signatureType ?? 'SECP256K1'
-    this.syncWithProvider = config.syncWithProvider ?? true
-  }
-
-  /**
-   * @param {WalletAdapter} value
-   * @returns {value is WalletAdapterFilsnap}
-   */
-  static is(value) {
-    return value instanceof WalletAdapterFilsnap && symbol in value
-  }
-
-  /**
-   * @param {{ network?: Network }} [params]
-   */
-  async connect(params = {}) {
-    if (this.#isConnecting || this.connected) {
-      if (!this.account) throw new Error('Already connecting')
-      return { account: this.account, network: this.network }
-    }
-    this.#isConnecting = true
-
-    try {
-      if (params.network) {
-        this.network = params.network
-      }
-
-      const provider = this.#provider ?? (await (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.getProvider)())
-
-      this.filsnap = await filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.FilsnapAdapter.connect({
-        config: {
-          network: this.network,
-          derivationPath: (0,iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_3__.pathFromNetwork)(this.network, this.#index),
-        },
-        provider,
-        snapId: 'npm:filsnap',
-        snapVersion: this.version,
-      })
-
-      if (this.syncWithProvider) {
-        this.#connector = (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.createConnector)({
-          provider,
-          onDisconnect: () => {
-            this.disconnect()
-          },
-          onChainChanged: (network) => {
-            if (network) {
-              this.changeNetwork(network)
-            }
-          },
-        })
-        await this.#connector.connect({
-          network: this.network,
-        })
-      }
-
-      const acc = await this.filsnap.getAccount()
-      if (acc.error) {
-        throw new Error(acc.error.message, { cause: acc.error.data })
-      }
-      this.account = acc.result
-      this.emit('connect', { account: acc.result, network: this.network })
-      return { account: acc.result, network: this.network }
-    } catch (error) {
-      const err = /** @type {Error} */ (error)
-
-      this.emit('error', err)
-      throw error
-    } finally {
-      this.#isConnecting = false
-    }
-  }
-
-  get connecting() {
-    return this.#isConnecting
-  }
-
-  get connected() {
-    return this.account !== undefined
-  }
-
-  get support() {
-    return this.#support
-  }
-
-  /**
-   * @param {Network} network
-   */
-  async changeNetwork(network) {
-    if (!this.filsnap || !this.account) {
-      const err = new Error('Adapter is not connected')
-      this.emit('error', err)
-      throw err
-    }
-
-    if (this.network === network) {
-      return { account: this.account, network: this.network }
-    }
-
-    try {
-      const changeChainResult = await this.filsnap.changeNetwork(network)
-      if (changeChainResult.error) {
-        throw new Error(changeChainResult.error.message, {
-          cause: changeChainResult.error.data,
-        })
-      }
-
-      if (this.syncWithProvider && this.#connector) {
-        await this.#connector.switchChain(network)
-      }
-      this.account = changeChainResult.result.account
-      this.network = network
-      this.emit('networkChanged', {
-        network: network,
-        account: this.account,
-      })
-      return { account: this.account, network: this.network }
-    } catch (error) {
-      const err = /** @type {Error} */ (error)
-      this.emit('error', err)
-      throw error
-    }
-  }
-
-  /**
-   * @param {number } _index
-   * @returns {Promise<IAccount>}
-   */
-  async deriveAccount(_index) {
-    if (!this.account || !this.filsnap) {
-      throw new Error('Adapter is not connected')
-    }
-    if (this.#index !== _index) {
-      try {
-        const newAccount = await this.filsnap.deriveAccount(_index)
-        if (newAccount.error) {
-          throw new Error(newAccount.error.message, {
-            cause: newAccount.error.data,
-          })
-        }
-        this.#index = _index
-        this.account = newAccount.result
-        this.emit('accountChanged', this.account)
-      } catch (error) {
-        const err = /** @type {Error} */ (error)
-        this.emit('error', err)
-        throw error
-      }
-    }
-
-    return this.account
-  }
-
-  /**
-   *
-   * @param {Uint8Array} data - Data to sign
-   */
-  async sign(data) {
-    if (!this.filsnap) {
-      throw new Error('Adapter is not connected')
-    }
-    const r = await this.filsnap.sign(data)
-    if (r.error) {
-      const err = new Error(r.error.message, { cause: r.error.data })
-      this.emit('error', err)
-      throw err
-    }
-
-    return r.result
-  }
-
-  /**
-   * @type {WalletAdapter['personalSign']}
-   * @inheritdoc
-   */
-  async personalSign(data) {
-    if (!this.filsnap) {
-      throw new Error('Adapter is not connected')
-    }
-    const r = await this.filsnap.personalSign(data)
-    if (r.error) {
-      const err = new Error(r.error.message, { cause: r.error.data })
-      this.emit('error', err)
-      throw err
-    }
-
-    return r.result
-  }
-
-  /**
-   *
-   * @param {MessageObj} message - Filecoin message to sign
-   */
-  async signMessage(message) {
-    if (!this.filsnap) {
-      throw new Error('Adapter is not connected')
-    }
-
-    const { from, ...rest } = message
-    const r = await this.filsnap.signMessage(rest)
-    if (r.error) {
-      const err = new Error(r.error.message, { cause: r.error.data })
-      this.emit('error', err)
-      throw err
-    }
-    return new iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_2__.Signature({
-      type: r.result.signature.type,
-      data: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_1__.base64pad.decode(r.result.signature.data),
-    })
-  }
-
-  async checkSupport() {
-    if (this.#support !== _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotChecked) {
-      return
-    }
-    try {
-      this.#provider = await (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.getProvider)()
-      this.#support = _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.Detected
-    } catch {
-      this.#support = _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotDetected
-    }
-  }
-
-  async disconnect() {
-    if (this.filsnap) {
-      await this.filsnap.disconnect()
-    }
-    if (this.#connector) {
-      await this.#connector.disconnect()
-    }
-
-    this.filsnap = undefined
-    this.account = undefined
-    this.emit('disconnect')
-  }
-}
 
 
 /***/ }),
@@ -92517,7 +92168,7 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony export */   ValidationRpcError: () => (/* binding */ ValidationRpcError),
 /* harmony export */   isRpcError: () => (/* binding */ isRpcError)
 /* harmony export */ });
-/* harmony import */ var iso_web_http__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! iso-web/http */ "./node_modules/iso-web/src/http.js");
+/* harmony import */ var iso_web_http__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! iso-web/http */ "./webpack-shims/iso-web-http.js");
 /* harmony import */ var zod_v4__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! zod/v4 */ "./node_modules/iso-filecoin/node_modules/zod/v4/core/errors.js");
 /* harmony import */ var _message_js__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./message.js */ "./node_modules/iso-filecoin/src/message.js");
 /* harmony import */ var _signature_js__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! ./signature.js */ "./node_modules/iso-filecoin/src/signature.js");
@@ -159174,6 +158825,46 @@ var z = /*#__PURE__*/Object.freeze({
 
 
 
+/***/ }),
+
+/***/ "./webpack-shims/iso-web-http.js":
+/*!***************************************!*\
+  !*** ./webpack-shims/iso-web-http.js ***!
+  \***************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   AbortError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.AbortError),
+/* harmony export */   HttpError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.HttpError),
+/* harmony export */   JsonError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.JsonError),
+/* harmony export */   NetworkError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.NetworkError),
+/* harmony export */   RequestError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.RequestError),
+/* harmony export */   RetryError: () => (/* binding */ RetryError),
+/* harmony export */   TimeoutError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.TimeoutError),
+/* harmony export */   isRequestError: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.isRequestError),
+/* harmony export */   request: () => (/* reexport safe */ _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__.request)
+/* harmony export */ });
+/* harmony import */ var _node_modules_iso_web_src_http_js__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ../node_modules/iso-web/src/http.js */ "./node_modules/iso-web/src/http.js");
+// Shim for iso-web/http that includes the missing RetryError export
+// This re-exports everything from the original iso-web/http and adds the missing RetryError
+
+// Import the original iso-web/http module path directly
+
+
+// Re-export everything from the original module
+
+
+// Add the missing RetryError class as a simple error subclass
+class RetryError extends Error {
+  constructor(message, options = {}) {
+    super(message, options);
+    this.name = 'RetryError';
+    this.cause = options.cause;
+  }
+}
+
 /***/ })
 
 /******/ 	});
@@ -159440,14 +159131,13 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var iso_filecoin_rpc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! iso-filecoin/rpc */ "./node_modules/iso-filecoin/src/rpc.js");
 /* harmony import */ var iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! iso-filecoin/signature */ "./node_modules/iso-filecoin/src/signature.js");
 /* harmony import */ var iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! iso-filecoin/utils */ "./node_modules/iso-filecoin/src/utils.js");
-/* harmony import */ var iso_filecoin_wallets_filsnap__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! iso-filecoin-wallets/filsnap */ "./node_modules/iso-filecoin-wallets/src/filsnap.js");
-/* harmony import */ var iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! iso-filecoin-wallets/hd */ "./node_modules/iso-filecoin-wallets/src/hd.js");
-/* harmony import */ var iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! iso-filecoin-wallets/ledger */ "./node_modules/iso-filecoin-wallets/src/ledger.js");
-/* harmony import */ var iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! iso-filecoin-wallets/local */ "./node_modules/iso-filecoin-wallets/src/local.js");
-/* harmony import */ var _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @reown/appkit/networks */ "./node_modules/@reown/appkit/dist/esm/exports/networks.js");
-/* harmony import */ var _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @walletconnect/universal-provider */ "./node_modules/@walletconnect/universal-provider/dist/index.es.js");
-/* harmony import */ var _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @bitcoinerlab/secp256k1 */ "./node_modules/@bitcoinerlab/secp256k1/dist/index.js");
-/* harmony import */ var bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
+/* harmony import */ var iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! iso-filecoin-wallets/hd */ "./node_modules/iso-filecoin-wallets/src/hd.js");
+/* harmony import */ var iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! iso-filecoin-wallets/ledger */ "./node_modules/iso-filecoin-wallets/src/ledger.js");
+/* harmony import */ var iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! iso-filecoin-wallets/local */ "./node_modules/iso-filecoin-wallets/src/local.js");
+/* harmony import */ var _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @reown/appkit/networks */ "./node_modules/@reown/appkit/dist/esm/exports/networks.js");
+/* harmony import */ var _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @walletconnect/universal-provider */ "./node_modules/@walletconnect/universal-provider/dist/index.es.js");
+/* harmony import */ var _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @bitcoinerlab/secp256k1 */ "./node_modules/@bitcoinerlab/secp256k1/dist/index.js");
+/* harmony import */ var bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
 
 
 
@@ -159458,7 +159148,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-
+// import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
 
 
 
@@ -159467,10 +159157,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 window.Buffer = buffer__WEBPACK_IMPORTED_MODULE_0__.Buffer;
-window.mainnet = _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_14__.mainnet;
-window.ecc = _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__;
-bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__.initEccLib(_bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__);
-window.bitcoin = bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__;
+window.mainnet = _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_13__.mainnet;
+window.ecc = _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__;
+bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__.initEccLib(_bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__);
+window.bitcoin = bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__;
 
 window.XRPL = {
     Client: xrpl__WEBPACK_IMPORTED_MODULE_2__.Client, decode: xrpl__WEBPACK_IMPORTED_MODULE_2__.decode
@@ -159485,14 +159175,14 @@ window.Filecoin = {
     Signature: iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_8__,
     Utils: iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_9__,
     Adapters: {
-        Filsnap: iso_filecoin_wallets_filsnap__WEBPACK_IMPORTED_MODULE_10__.WalletAdapterFilsnap,
-        Hd: iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_11__.WalletAdapterHd,
-        Ledger: iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_12__.WalletAdapterLedger,
-        Raw: iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_13__.WalletAdapterRaw
+        // Filsnap: WalletAdapterFilsnap, // Temporarily disabled due to import issues
+        Hd: iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_10__.WalletAdapterHd,
+        Ledger: iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_11__.WalletAdapterLedger,
+        Raw: iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_12__.WalletAdapterRaw
     }
 }
 
-window.UniversalProvider = _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_15__["default"];
+window.UniversalProvider = _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_14__["default"];
 window.createAppKit = _reown_appkit__WEBPACK_IMPORTED_MODULE_1__.createAppKit;
 
 

@@ -71,7 +71,27 @@ export function createMessage(params) {
  * @returns {string} Amount in attoFIL
  */
 export function filToAttoFil(fil) {
-    return window.Filecoin.Token.fromFIL(fil).toString();
+    try {
+        // 检查 Token 类是否可用
+        console.log("window.Filecoin.Token:", window.Filecoin.Token);
+        console.log("Available methods:", Object.getOwnPropertyNames(window.Filecoin.Token));
+
+        if (!window.Filecoin.Token.fromFIL) {
+            // 如果 fromFIL 不可用，手动计算
+            console.warn("fromFIL method not available, using manual conversion");
+            const filValue = parseFloat(fil);
+            const attoValue = filValue * Math.pow(10, 18);
+            return attoValue.toLocaleString('fullwide', {useGrouping:false});
+        }
+
+        return window.Filecoin.Token.fromFIL(fil).toString();
+    } catch (error) {
+        console.error("Error in filToAttoFil:", error);
+        // 回退到手动计算
+        const filValue = parseFloat(fil);
+        const attoValue = filValue * Math.pow(10, 18);
+        return attoValue.toLocaleString('fullwide', {useGrouping:false});
+    }
 }
 
 /**
@@ -80,7 +100,23 @@ export function filToAttoFil(fil) {
  * @returns {string} Amount in FIL
  */
 export function attoFilToFil(attoFil) {
-    return window.Filecoin.Token.fromAttoFIL(attoFil).toFIL().toString();
+    try {
+        if (!window.Filecoin.Token.fromAttoFIL) {
+            // 如果 fromAttoFIL 不可用，手动计算
+            console.warn("fromAttoFIL method not available, using manual conversion");
+            const attoValue = parseFloat(attoFil);
+            const filValue = attoValue / Math.pow(10, 18);
+            return filValue.toString();
+        }
+
+        return window.Filecoin.Token.fromAttoFIL(attoFil).toFIL().toString();
+    } catch (error) {
+        console.error("Error in attoFilToFil:", error);
+        // 回退到手动计算
+        const attoValue = parseFloat(attoFil);
+        const filValue = attoValue / Math.pow(10, 18);
+        return filValue.toString();
+    }
 }
 
 /**

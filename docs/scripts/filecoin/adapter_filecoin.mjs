@@ -33,7 +33,7 @@ async function connectHDWallet() {
                 type: 'HD Wallet',
                 address: currentAdapter.account.address.toString(),
                 network: currentAdapter.network,
-                connected: currentAdapter.isConnected
+                connected: currentAdapter.connected
             };
         }
     });
@@ -46,17 +46,30 @@ async function connectFilsnap() {
     await utils.runMethod({
         method: "connectFilsnap",
         asyncFunc: async function() {
+            console.log("Starting Filsnap connection...");
+
             // 创建Filsnap钱包适配器
             currentAdapter = new window.Filecoin.Adapters.Filsnap();
+            console.log("Filsnap adapter created:", currentAdapter);
 
             // 连接到主网
-            await currentAdapter.connect({ network: 'mainnet' });
+            const result = await currentAdapter.connect({ network: 'mainnet' });
+            console.log("Connection result:", result);
+            console.log("Current adapter state:", {
+                connected: currentAdapter.connected,
+                account: currentAdapter.account,
+                network: currentAdapter.network
+            });
+
+            if (!currentAdapter.connected) {
+                throw new Error("Failed to connect to Filsnap");
+            }
 
             return {
                 type: 'Filsnap (MetaMask)',
                 address: currentAdapter.account.address.toString(),
                 network: currentAdapter.network,
-                connected: currentAdapter.isConnected
+                connected: currentAdapter.connected
             };
         }
     });
@@ -81,7 +94,7 @@ async function connectLedger() {
                 type: 'Ledger Hardware Wallet',
                 address: currentAdapter.account.address.toString(),
                 network: currentAdapter.network,
-                connected: currentAdapter.isConnected
+                connected: currentAdapter.connected
             };
         }
     });
@@ -112,7 +125,7 @@ async function connectRawWallet() {
                 type: 'Raw Private Key',
                 address: currentAdapter.account.address.toString(),
                 network: currentAdapter.network,
-                connected: currentAdapter.isConnected
+                connected: currentAdapter.connected
             };
         }
     });
@@ -122,7 +135,11 @@ async function connectRawWallet() {
  * 获取账户信息
  */
 async function getAccountInfo() {
-    if (!currentAdapter || !currentAdapter.isConnected) {
+    console.log("Getting account info...");
+    console.log("Current adapter:", currentAdapter);
+    console.log("Is connected:", currentAdapter?.connected);
+
+    if (!currentAdapter || !currentAdapter.connected) {
         alert('Please connect a wallet first!');
         return;
     }
@@ -145,7 +162,7 @@ async function getAccountInfo() {
  * 切换网络
  */
 async function switchNetwork() {
-    if (!currentAdapter || !currentAdapter.isConnected) {
+    if (!currentAdapter || !currentAdapter.connected) {
         alert('Please connect a wallet first!');
         return;
     }
@@ -169,7 +186,7 @@ async function switchNetwork() {
  * 签名消息
  */
 async function signMessage() {
-    if (!currentAdapter || !currentAdapter.isConnected) {
+    if (!currentAdapter || !currentAdapter.connected) {
         alert('Please connect a wallet first!');
         return;
     }
@@ -193,7 +210,7 @@ async function signMessage() {
  * 发送交易
  */
 async function sendTransaction() {
-    if (!currentAdapter || !currentAdapter.isConnected) {
+    if (!currentAdapter || !currentAdapter.connected) {
         alert('Please connect a wallet first!');
         return;
     }

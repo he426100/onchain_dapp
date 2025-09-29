@@ -79697,6 +79697,1012 @@ function eventTargetAgnosticAddListener(emitter, name, listener, flags) {
 
 /***/ }),
 
+/***/ "./node_modules/filsnap-adapter/dist/src/chains.js":
+/*!*********************************************************!*\
+  !*** ./node_modules/filsnap-adapter/dist/src/chains.js ***!
+  \*********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   mainnet: () => (/* reexport safe */ iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.mainnet),
+/* harmony export */   metamask: () => (/* binding */ metamask),
+/* harmony export */   testnet: () => (/* reexport safe */ iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.testnet)
+/* harmony export */ });
+/* harmony import */ var iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! iso-filecoin/chains */ "./node_modules/iso-filecoin/src/chains.js");
+
+const metamask = {
+    mainnet: (0,iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.toEthereumChain)(iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.mainnet),
+    testnet: (0,iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.toEthereumChain)(iso_filecoin_chains__WEBPACK_IMPORTED_MODULE_0__.testnet),
+};
+
+//# sourceMappingURL=chains.js.map
+
+/***/ }),
+
+/***/ "./node_modules/filsnap-adapter/dist/src/connector.js":
+/*!************************************************************!*\
+  !*** ./node_modules/filsnap-adapter/dist/src/connector.js ***!
+  \************************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   createConnector: () => (/* binding */ createConnector),
+/* harmony export */   syncWithProvider: () => (/* binding */ syncWithProvider)
+/* harmony export */ });
+/* harmony import */ var _chains__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./chains */ "./node_modules/filsnap-adapter/dist/src/chains.js");
+/* harmony import */ var _snap__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./snap */ "./node_modules/filsnap-adapter/dist/src/snap.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./utils */ "./node_modules/filsnap-adapter/dist/src/utils.js");
+
+
+
+/**
+ * Create a connector for the EIP-1193 provider.
+ *
+ * @param options - The connector options.
+ */
+function createConnector(options) {
+    let currentNetwork;
+    let status = 'disconnected';
+    const { provider } = options;
+    if (!provider.isMetaMask) {
+        throw new Error('Provider is not MetaMask');
+    }
+    function onChainChanged(chainId) {
+        currentNetwork = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.chainIdtoNetwork)(chainId);
+        options.onChainChanged?.(currentNetwork);
+    }
+    function onDisconnect() {
+        status = 'disconnected';
+        options.onDisconnect?.();
+        provider.removeListener('chainChanged', onChainChanged);
+        provider.removeListener('disconnect', onDisconnect);
+        // provider.removeListener('accountsChanged', onAccountsChanged)
+    }
+    async function onAccountsChanged(accounts) {
+        if (accounts.length === 0) {
+            onDisconnect();
+        }
+        else if (status === 'connected') {
+            options.onAccountsChanged?.(accounts);
+        }
+        else {
+            const chainId = await provider.request({ method: 'eth_chainId' });
+            await onConnect({ chainId });
+        }
+    }
+    async function onConnect(connectInfo) {
+        currentNetwork = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.chainIdtoNetwork)(connectInfo.chainId);
+        const accounts = await provider.request({ method: 'eth_accounts' });
+        if (accounts.length === 0) {
+            return;
+        }
+        status = 'connected';
+        options.onConnect?.(currentNetwork);
+    }
+    return {
+        provider,
+        setup() {
+            provider.on('accountsChanged', onAccountsChanged);
+            provider.on('chainChanged', onChainChanged);
+            provider.on('disconnect', onDisconnect);
+            return this;
+        },
+        async connect(options = {}) {
+            // Manage EIP-1193 event listeners
+            // https://eips.ethereum.org/EIPS/eip-1193#events
+            if (status !== 'connected') {
+                // setup() has not been called yet
+                provider.on('accountsChanged', onAccountsChanged);
+                provider.on('chainChanged', onChainChanged);
+                provider.on('disconnect', onDisconnect);
+            }
+            // connect to wallet
+            const accounts = await provider.request({
+                method: 'eth_requestAccounts',
+            });
+            // switch to chain
+            await this.switchChain(options.network ?? currentNetwork);
+            return { accounts, network: currentNetwork };
+        },
+        async disconnect() {
+            await provider.request({
+                method: 'wallet_revokePermissions',
+                params: [
+                    {
+                        eth_accounts: {},
+                    },
+                ],
+            });
+        },
+        async getChainId() {
+            return await provider.request({ method: 'eth_chainId' });
+        },
+        async getNetwork() {
+            if (!currentNetwork) {
+                currentNetwork = (0,_utils__WEBPACK_IMPORTED_MODULE_2__.chainIdtoNetwork)(await this.getChainId());
+            }
+            return currentNetwork;
+        },
+        async switchChain(network = currentNetwork) {
+            if (network === undefined) {
+                network = 'mainnet';
+            }
+            const config = network === 'testnet' ? _chains__WEBPACK_IMPORTED_MODULE_0__.metamask.testnet : _chains__WEBPACK_IMPORTED_MODULE_0__.metamask.mainnet;
+            if (currentNetwork === network) {
+                return network;
+            }
+            try {
+                await provider.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: config.chainId }],
+                });
+                currentNetwork = network;
+                return currentNetwork;
+            }
+            catch (switchError) {
+                const err = switchError;
+                // This error code indicates that the chain has not been added to MetaMask.
+                if (err.code === 4902) {
+                    try {
+                        await provider.request({
+                            method: 'wallet_addEthereumChain',
+                            params: [config],
+                        });
+                        const currentChainId = await this.getChainId();
+                        if (currentChainId !== config.chainId) {
+                            throw new Error('User rejected switch after adding network.');
+                        }
+                        currentNetwork = network;
+                        return currentNetwork;
+                    }
+                    catch (error) {
+                        throw new Error('Failed to add chain to MetaMask.', {
+                            cause: error,
+                        });
+                    }
+                }
+                else {
+                    throw new Error('Failed to add/switch chain to MetaMask.', {
+                        cause: err,
+                    });
+                }
+            }
+        },
+        async getAccounts() {
+            return await provider.request({ method: 'eth_accounts' });
+        },
+        async permissions() {
+            return await (0,_utils__WEBPACK_IMPORTED_MODULE_2__.checkPermissions)(provider);
+        },
+    };
+}
+/**
+ * Synchronizes with the provider to establish connection with Filsnap adapter.
+ * If no provider is passed, it will attempt to get the MetaMask provider. See {@link getProvider}.
+ *
+ * @example
+ * ```ts twoslash
+ * import { syncWithProvider, getProvider } from 'filsnap-adapter'
+ *
+ * const connector = await syncWithProvider({
+ *   provider: await getProvider(), // optional, will attempt to get the MetaMask provider
+ *   version: '0.1.0', // optional, defaults to '*'
+ *   reconnect: true // optional, defaults to true
+ * })
+ * ```
+ */
+async function syncWithProvider({ provider, reconnect = true, version = '*', } = {}) {
+    if (!provider) {
+        try {
+            provider = await (0,_utils__WEBPACK_IMPORTED_MODULE_2__.getProvider)();
+        }
+        catch {
+            // ignore
+        }
+    }
+    if (!provider || !provider.isMetaMask) {
+        return;
+    }
+    let adapter;
+    const connector = createConnector({
+        provider,
+        onChainChanged: async (network) => {
+            if (adapter && network) {
+                adapter.changeNetwork(network);
+            }
+            if (!adapter && network) {
+                adapter = await _snap__WEBPACK_IMPORTED_MODULE_1__.FilsnapAdapter.connect({
+                    provider,
+                    snapId: 'npm:filsnap',
+                    snapVersion: version,
+                    config: { network },
+                });
+            }
+        },
+        onConnect: async (network) => {
+            if (network && !adapter) {
+                adapter = await _snap__WEBPACK_IMPORTED_MODULE_1__.FilsnapAdapter.connect({
+                    provider,
+                    snapId: 'npm:filsnap',
+                    snapVersion: version,
+                    config: { network },
+                });
+            }
+        },
+        onDisconnect: () => {
+            if (adapter) {
+                adapter.disconnect();
+                adapter = undefined;
+            }
+        },
+    }).setup();
+    // reconnect to adapter
+    if (reconnect) {
+        const { wallet } = await connector.permissions();
+        const network = await connector.getNetwork();
+        if (wallet && network) {
+            adapter = await _snap__WEBPACK_IMPORTED_MODULE_1__.FilsnapAdapter.connect({
+                provider,
+                snapId: 'npm:filsnap',
+                snapVersion: version,
+                config: { network },
+            });
+        }
+    }
+    return connector;
+}
+//# sourceMappingURL=connector.js.map
+
+/***/ }),
+
+/***/ "./node_modules/filsnap-adapter/dist/src/index.js":
+/*!********************************************************!*\
+  !*** ./node_modules/filsnap-adapter/dist/src/index.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   FilsnapAdapter: () => (/* reexport safe */ _snap__WEBPACK_IMPORTED_MODULE_0__.FilsnapAdapter),
+/* harmony export */   chainIdtoNetwork: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.chainIdtoNetwork),
+/* harmony export */   checkPermissions: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.checkPermissions),
+/* harmony export */   createConnector: () => (/* reexport safe */ _connector__WEBPACK_IMPORTED_MODULE_2__.createConnector),
+/* harmony export */   getOrInstallSnap: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.getOrInstallSnap),
+/* harmony export */   getProvider: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.getProvider),
+/* harmony export */   getSnap: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.getSnap),
+/* harmony export */   hasSnaps: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.hasSnaps),
+/* harmony export */   isConnected: () => (/* reexport safe */ _utils__WEBPACK_IMPORTED_MODULE_1__.isConnected),
+/* harmony export */   syncWithProvider: () => (/* reexport safe */ _connector__WEBPACK_IMPORTED_MODULE_2__.syncWithProvider)
+/* harmony export */ });
+/* harmony import */ var _snap__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! ./snap */ "./node_modules/filsnap-adapter/dist/src/snap.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./utils */ "./node_modules/filsnap-adapter/dist/src/utils.js");
+/* harmony import */ var _connector__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! ./connector */ "./node_modules/filsnap-adapter/dist/src/connector.js");
+
+
+
+//# sourceMappingURL=index.js.map
+
+/***/ }),
+
+/***/ "./node_modules/filsnap-adapter/dist/src/snap.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/filsnap-adapter/dist/src/snap.js ***!
+  \*******************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   FilsnapAdapter: () => (/* binding */ FilsnapAdapter)
+/* harmony export */ });
+/* harmony import */ var iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! iso-base/rfc4648 */ "./node_modules/iso-base/src/rfc4648.js");
+/* harmony import */ var iso_filecoin_address__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! iso-filecoin/address */ "./node_modules/iso-filecoin/src/address.js");
+/* harmony import */ var iso_filecoin_rpc__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! iso-filecoin/rpc */ "./node_modules/iso-filecoin/src/rpc.js");
+/* harmony import */ var iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! iso-filecoin/signature */ "./node_modules/iso-filecoin/src/signature.js");
+/* harmony import */ var iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! iso-filecoin/utils */ "./node_modules/iso-filecoin/src/utils.js");
+/* harmony import */ var _utils__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! ./utils */ "./node_modules/filsnap-adapter/dist/src/utils.js");
+
+
+
+
+
+
+const MIN_SNAP_VERSION = '^1.6.0';
+/**
+ * Filsnap Adapter
+ */
+class FilsnapAdapter {
+    snap;
+    provider;
+    config;
+    constructor(options) {
+        this.snap = options.snap;
+        this.provider = options.provider;
+    }
+    /**
+     * Installs and connects to Filsnap
+     *
+     * @throws Error if Metamask is not installed
+     *
+     * @param options - Connect options
+     */
+    static async connect(options) {
+        // connect to snap
+        const snap = await (0,_utils__WEBPACK_IMPORTED_MODULE_5__.getOrInstallSnap)(options.provider, options.snapId, options.snapVersion ?? MIN_SNAP_VERSION);
+        const adapter = new FilsnapAdapter({
+            provider: options.provider,
+            snap,
+        });
+        const result = await adapter.configure(options.config);
+        if (result.error) {
+            throw new Error(result.error.message);
+        }
+        return adapter;
+    }
+    /**
+     * Reconnects to an existing Filsnap installation
+     *
+     * @param options - Connect options without config
+     * @returns Adapter instance and account info if snap is installed, undefined otherwise
+     *
+     * @example
+     * ```ts
+     * import { FilsnapAdapter } from 'filsnap-adapter'
+     *
+     * const connection = await FilsnapAdapter.reconnect({
+     *   provider: window.ethereum,
+     *   snapId: 'npm:filsnap'
+     * })
+     *
+     * if (connection) {
+     *   const { adapter, account } = connection
+     *   console.log('Reconnected to account:', account.address)
+     * }
+     * ```
+     */
+    static async reconnect(options) {
+        const snap = await (0,_utils__WEBPACK_IMPORTED_MODULE_5__.getOrInstallSnap)(options.provider, options.snapId, options.snapVersion ?? MIN_SNAP_VERSION);
+        if (snap) {
+            const adapter = new FilsnapAdapter({
+                snap,
+                provider: options.provider,
+            });
+            const info = await adapter.getAccountInfo();
+            if (info.error) {
+                throw new Error(info.error.message, { cause: info.error });
+            }
+            return { adapter, account: info.result };
+        }
+    }
+    /**
+     * Disconnect provider
+     *
+     * @example
+     * ```ts
+     * import { FilsnapAdapter } from 'filsnap-adapter'
+     *
+     * const adapter = await FilsnapAdapter.connect({
+     *   provider: window.ethereum,
+     *   snapId: 'npm:filsnap',
+     * })
+     * await adapter.disconnect()
+     * ```
+     */
+    async disconnect() {
+        await this.provider.request({
+            method: 'wallet_revokePermissions',
+            params: [
+                {
+                    wallet_snap: {},
+                },
+            ],
+        });
+        this.config = undefined;
+    }
+    /**
+     * Get the RPC instance configured by Filsnap
+     *
+     * @returns RPC instance
+     */
+    rpc() {
+        if (this.config == null) {
+            throw new Error('Not connected to Filsnap');
+        }
+        return new iso_filecoin_rpc__WEBPACK_IMPORTED_MODULE_2__.RPC({
+            token: this.config.rpc.token,
+            api: this.config.rpc.url,
+            network: this.config.network,
+        });
+    }
+    /**
+     * Configure the snap
+     *
+     * @param params - {@link FilSnapMethods.fil_configure} params
+     */
+    async configure(params = {}) {
+        const config = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_configure',
+                    params,
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (config.result) {
+            this.config = config.result;
+        }
+        return config;
+    }
+    /**
+     * Change the current network and derive a new account for that network
+     *
+     * @param network - Network to switch to (mainnet, testnet, etc)
+     * @returns Response containing the new network and derived account
+     *
+     * @example
+     * ```ts
+     * import { FilsnapAdapter, getProvider } from 'filsnap-adapter'
+     *
+     * const adapter = await FilsnapAdapter.connect({
+     *   provider: getProvider(),
+     *   snapId: 'npm:filsnap',
+     *   config: { network: 'testnet' },
+     * })
+     * const response = await adapter.changeNetwork('mainnet')
+     * console.log(response.result.network) // 'mainnet'
+     * console.log(response.result.account.address) // 'f1...'
+     * ```
+     */
+    async changeNetwork(network) {
+        const out = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_changeNetwork',
+                    params: {
+                        network,
+                    },
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (out.error) {
+            return out;
+        }
+        if (this.config) {
+            this.config.network = out.result.network;
+        }
+        return {
+            error: null,
+            result: {
+                network,
+                account: {
+                    address: (0,iso_filecoin_address__WEBPACK_IMPORTED_MODULE_1__.fromString)(out.result.account.address),
+                    publicKey: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__.hex.decode(out.result.account.publicKey),
+                    path: out.result.account.path,
+                    type: out.result.account.type,
+                },
+            },
+        };
+    }
+    /**
+     * Derive new account using provided index
+     */
+    async deriveAccount(index) {
+        const out = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_deriveAccount',
+                    params: {
+                        index,
+                    },
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (out.error) {
+            return out;
+        }
+        if (this.config) {
+            this.config.derivationPath = out.result.path;
+        }
+        return {
+            error: null,
+            result: {
+                address: (0,iso_filecoin_address__WEBPACK_IMPORTED_MODULE_1__.fromString)(out.result.address),
+                publicKey: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__.hex.decode(out.result.publicKey),
+                path: out.result.path,
+                type: out.result.type,
+            },
+        };
+    }
+    /**
+     * Get current account data
+     */
+    async getAccount() {
+        const out = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getAccount',
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (out.error) {
+            return out;
+        }
+        return {
+            error: null,
+            result: {
+                address: (0,iso_filecoin_address__WEBPACK_IMPORTED_MODULE_1__.fromString)(out.result.address),
+                publicKey: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__.hex.decode(out.result.publicKey),
+                path: out.result.path,
+                type: out.result.type,
+            },
+        };
+    }
+    /**
+     * Export the account private key from the snap
+     *
+     * @see {@link FilSnapMethods.fil_exportPrivateKey}
+     */
+    async exportPrivateKey() {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_exportPrivateKey',
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Request account balance from the snap
+     *
+     * @see {@link FilSnapMethods.fil_getBalance}
+     */
+    async getBalance() {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getBalance',
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Sign a Filecoin message
+     *
+     * @param params - {@link FilSnapMethods.fil_signMessage} params
+     */
+    async signMessage(params) {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_signMessage',
+                    params,
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Sign a raw message
+     *
+     * @deprecated Use {@link sign} instead
+     * @param params - {@link FilSnapMethods.fil_signMessageRaw} params
+     */
+    async signMessageRaw(params) {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_signMessageRaw',
+                    params,
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Sign arbitrary bytes
+     *
+     * @param data - Data to sign
+     */
+    async sign(data) {
+        const sign = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_sign',
+                    params: {
+                        data: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__.base64pad.encode(data),
+                    },
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (sign.error) {
+            return sign;
+        }
+        return {
+            error: null,
+            result: iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_3__.Signature.fromLotusHex(sign.result),
+        };
+    }
+    /**
+     * Sign FRC-102 message
+     *
+     * @param data - Data to sign
+     */
+    async personalSign(data) {
+        const sign = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_personalSign',
+                    params: {
+                        data: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_0__.base64pad.encode(data),
+                    },
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (sign.error) {
+            return sign;
+        }
+        return {
+            error: null,
+            result: iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_3__.Signature.fromLotusHex(sign.result),
+        };
+    }
+    /**
+     * Send a signed message
+     *
+     * @param params - {@link FilSnapMethods.fil_sendMessage} params
+     */
+    async sendMessage(params) {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_sendMessage',
+                    params,
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Estimate the gas for a message
+     *
+     * `maxFee` is optional and defaults to `100000000000000000` attoFIL (0.1 FIL)
+     *
+     * @param params -`fil_getGasForMessage` RPC method params
+     */
+    async calculateGasForMessage(params) {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getGasForMessage',
+                    params,
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Request account info with balance from the snap
+     *
+     * @deprecated use {@link getAccount} instead
+     * @see {@link FilSnapMethods.fil_getAccountInfo}
+     */
+    async getAccountInfo() {
+        const info = await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getAccountInfo',
+                },
+                snapId: this.snap.id,
+            },
+        });
+        if (info.result) {
+            this.config = info.result.config;
+        }
+        return info;
+    }
+    /**
+     * Request account address from the snap
+     *
+     * @deprecated use {@link getAccount} instead
+     * @see {@link FilSnapMethods.fil_getAddress}
+     */
+    async getAddress() {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getAddress',
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Request account public key from the snap
+     *
+     * @deprecated use {@link getAccount} instead
+     * @see {@link FilSnapMethods.fil_getPublicKey}
+     * @returns Hex encoded public key
+     * @example
+     * ```js
+     * const rsp = await adapter.getPublicKey()
+     * if (rsp.error) {
+     *    throw new Error(rsp.error.message, {cause: rsp.error.data})
+     * }
+     * const publicKey = hex.decode(rsp.result)
+     * ```
+     */
+    async getPublicKey() {
+        return await this.provider.request({
+            method: 'wallet_invokeSnap',
+            params: {
+                request: {
+                    method: 'fil_getPublicKey',
+                },
+                snapId: this.snap.id,
+            },
+        });
+    }
+    /**
+     * Change the chain
+     *
+     * @deprecated use {@link changeNetwork} instead and use `getNetworkFromChainId` from 'iso-filecoin/utils'
+     * @param chain - Chain to switch to. Can be a chain id (0x13a) or id (314) or network name (mainnet)
+     */
+    async changeChain(chain) {
+        const network = (0,iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_4__.getNetworkFromChainId)(chain);
+        if (this.config && this.config.network === network) {
+            return { result: this.config, error: null };
+        }
+        const config = await this.configure({ network });
+        if (config.error) {
+            return config;
+        }
+        this.config = config.result;
+        return config;
+    }
+}
+//# sourceMappingURL=snap.js.map
+
+/***/ }),
+
+/***/ "./node_modules/filsnap-adapter/dist/src/utils.js":
+/*!********************************************************!*\
+  !*** ./node_modules/filsnap-adapter/dist/src/utils.js ***!
+  \********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   chainIdtoNetwork: () => (/* binding */ chainIdtoNetwork),
+/* harmony export */   checkPermissions: () => (/* binding */ checkPermissions),
+/* harmony export */   getOrInstallSnap: () => (/* binding */ getOrInstallSnap),
+/* harmony export */   getProvider: () => (/* binding */ getProvider),
+/* harmony export */   getSnap: () => (/* binding */ getSnap),
+/* harmony export */   hasSnaps: () => (/* binding */ hasSnaps),
+/* harmony export */   isConnected: () => (/* binding */ isConnected)
+/* harmony export */ });
+/* harmony import */ var semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! semver/functions/satisfies */ "./node_modules/semver/functions/satisfies.js");
+/* harmony import */ var _chains__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! ./chains */ "./node_modules/filsnap-adapter/dist/src/chains.js");
+
+
+/**
+ * Get the Metamask provider.
+ *
+ * @param timeout - The timeout in milliseconds.
+ * @returns The request provider.
+ */
+async function getProvider(timeout = 1000) {
+    let timeoutHandle = 0;
+    return await new Promise((resolve, reject) => {
+        const onProviderFound = (event) => {
+            clearTimeout(timeoutHandle); // Clear the timeout on successful provider detection
+            const { rdns } = event.detail.info;
+            switch (rdns) {
+                case 'io.metamask':
+                case 'io.metamask.flask':
+                case 'io.metamask.mmi': {
+                    const provider = event.detail.provider;
+                    if (!provider || !provider.isMetaMask) {
+                        reject(new Error('Provider not supported or not found.'));
+                    }
+                    else {
+                        window.removeEventListener('eip6963:announceProvider', onProviderFound);
+                        resolve(provider);
+                    }
+                    break;
+                }
+                default: {
+                    // console.error('Provider not supported or not found.', rdns)
+                    // reject(new Error('Provider not supported or not found.'))
+                    break;
+                }
+            }
+        };
+        window.addEventListener('eip6963:announceProvider', onProviderFound);
+        window.dispatchEvent(new CustomEvent('eip6963:requestProvider'));
+        // Set a timeout to reject the promise if no provider is found within the specified time
+        timeoutHandle = window.setTimeout(() => {
+            window.removeEventListener('eip6963:announceProvider', onProviderFound);
+            reject(new Error('Provider request timed out.'));
+        }, timeout);
+    });
+}
+/**
+ * Converts a Chain ID to Filecoin Network
+ *
+ * @param chainId
+ * @returns  Returns mainnet, testnet or undefined if not a filecoin chain
+ */
+function chainIdtoNetwork(chainId) {
+    return chainId === _chains__WEBPACK_IMPORTED_MODULE_1__.metamask.testnet.chainId
+        ? 'testnet'
+        : chainId === _chains__WEBPACK_IMPORTED_MODULE_1__.metamask.mainnet.chainId
+            ? 'mainnet'
+            : undefined;
+}
+/**
+ * Get or install a snap
+ *
+ * @param provider - The provider to get the snap from
+ * @param snapId - The snap ID to get
+ * @param snapVersion - The snap version to get
+ */
+async function getOrInstallSnap(provider, snapId = 'npm:filsnap', snapVersion = '*', forceInstall = false) {
+    const snap = await getSnap(provider, snapId, snapVersion);
+    // try to install the snap
+    if (snap == null || forceInstall) {
+        try {
+            const snaps = await provider.request({
+                method: 'wallet_requestSnaps',
+                params: {
+                    [snapId]: {
+                        version: snapVersion,
+                    },
+                },
+            });
+            const snap = snaps[snapId];
+            if (snap == null) {
+                throw new Error(`Failed to install to snap ${snapId} ${snapVersion}`);
+            }
+            if ('error' in snap) {
+                throw new Error(`Failed to install to snap ${snapId} ${snapVersion} with error "${snap.error.message}"`);
+            }
+            return snap;
+        }
+        catch (error) {
+            const err = error;
+            throw new Error(`Failed to install to snap ${snapId} ${snapVersion} with error "${err.message}"`);
+        }
+    }
+    return snap;
+}
+/**
+ * Get a snap
+ *
+ * @param provider - The provider to get the snap from
+ * @param snapId - Snap ID to check for. Defaults to `npm:filsnap`.
+ * @param snapVersion - Snap version to check for. Defaults to `*` which matches any version.
+ */
+async function getSnap(provider, snapId = 'npm:filsnap', snapVersion = '*') {
+    const snaps = await provider.request({ method: 'wallet_getSnaps' });
+    const snap = snaps[snapId];
+    if (snap == null) {
+        return undefined;
+    }
+    if ('error' in snap) {
+        throw new Error(`Failed to connect to snap ${snapId} ${snapVersion} with error ${snap.error.message}`);
+    }
+    if (snap.blocked === true) {
+        throw new Error(`Snap ${snapId} ${snapVersion} is blocked`);
+    }
+    if (snap.enabled === false) {
+        throw new Error(`Snap ${snapId} ${snapVersion} is not enabled`);
+    }
+    if (!semver_functions_satisfies__WEBPACK_IMPORTED_MODULE_0__(snap.version, snapVersion)) {
+        return undefined;
+    }
+    return snap;
+}
+/**
+ * Check if Metamask has Snaps API
+ *
+ * @param provider - The provider to check for snaps
+ */
+async function hasSnaps(provider) {
+    try {
+        await provider.request({ method: 'wallet_getSnaps' });
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+/**
+ * Check if a snap is connected, enabled and not blocked
+ *
+ * @param provider - The provider to check for snaps
+ * @param snapId - Snap ID to check for. Defaults to `npm:filsnap`.
+ * @param snapVersion - Snap version to check for. Defaults to `*` which matches any version.
+ */
+async function isConnected(provider, snapId = 'npm:filsnap', snapVersion = '*') {
+    try {
+        const snap = await getSnap(provider, snapId, snapVersion);
+        if (snap == null) {
+            return false;
+        }
+        return true;
+    }
+    catch {
+        return false;
+    }
+}
+async function checkPermissions(provider) {
+    try {
+        const perms = await provider.request({
+            method: 'wallet_getPermissions',
+        });
+        if (perms.length === 0) {
+            return {
+                snap: false,
+                wallet: false,
+            };
+        }
+        let wallet = false;
+        let snap = false;
+        if (perms.length > 0) {
+            for (const element of perms) {
+                if (element.parentCapability === 'wallet_snap') {
+                    const hasFilsnap = element.caveats.some((caveat) => caveat.value['npm:filsnap']);
+                    if (hasFilsnap) {
+                        snap = true;
+                    }
+                }
+                if (element.parentCapability === 'eth_accounts') {
+                    wallet = true;
+                }
+            }
+        }
+        return { snap, wallet };
+    }
+    catch {
+        return {
+            snap: false,
+            wallet: false,
+        };
+    }
+}
+//# sourceMappingURL=utils.js.map
+
+/***/ }),
+
 /***/ "./node_modules/idb-keyval/dist/index.js":
 /*!***********************************************!*\
   !*** ./node_modules/idb-keyval/dist/index.js ***!
@@ -80949,6 +81955,334 @@ const WalletSupport = /** @type {const} */ ({
   NotDetected: 'NotDetected',
   NotSupported: 'NotSupported',
 })
+
+
+/***/ }),
+
+/***/ "./node_modules/iso-filecoin-wallets/src/filsnap.js":
+/*!**********************************************************!*\
+  !*** ./node_modules/iso-filecoin-wallets/src/filsnap.js ***!
+  \**********************************************************/
+/***/ ((__unused_webpack___webpack_module__, __webpack_exports__, __webpack_require__) => {
+
+"use strict";
+__webpack_require__.r(__webpack_exports__);
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   WalletAdapterFilsnap: () => (/* binding */ WalletAdapterFilsnap)
+/* harmony export */ });
+/* harmony import */ var filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(/*! filsnap-adapter */ "./node_modules/filsnap-adapter/dist/src/index.js");
+/* harmony import */ var iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(/*! iso-base/rfc4648 */ "./node_modules/iso-base/src/rfc4648.js");
+/* harmony import */ var iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(/*! iso-filecoin/signature */ "./node_modules/iso-filecoin/src/signature.js");
+/* harmony import */ var iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(/*! iso-filecoin/utils */ "./node_modules/iso-filecoin/src/utils.js");
+/* harmony import */ var iso_web_event_target__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(/*! iso-web/event-target */ "./node_modules/iso-web/src/event-target/index.js");
+/* harmony import */ var nanoid__WEBPACK_IMPORTED_MODULE_5__ = __webpack_require__(/*! nanoid */ "./node_modules/iso-filecoin-wallets/node_modules/nanoid/index.browser.js");
+/* harmony import */ var _common_js__WEBPACK_IMPORTED_MODULE_6__ = __webpack_require__(/*! ./common.js */ "./node_modules/iso-filecoin-wallets/src/common.js");
+
+
+
+
+
+
+
+
+/**
+ * @import { WalletAdapter, WalletEvents, WalletConfig, WalletSupportType } from './types.js'
+ */
+
+/**
+ * @typedef {import('iso-filecoin/types').IAccountWithPath} IAccount
+ * @typedef {import('iso-filecoin/types').Network} Network
+ * @typedef {import('iso-filecoin/types').MessageObj} MessageObj
+ * @typedef {import('iso-filecoin/types').SignatureType} SignatureType
+ */
+
+const symbol = Symbol.for('wallet-adapter-filsnap')
+
+/**
+ * Filsnap wallet implementation
+ *
+ * @implements {WalletAdapter} - {@link WalletAdapter}
+ * @extends {TypedEventTarget<WalletEvents>}
+ */
+class WalletAdapterFilsnap extends iso_web_event_target__WEBPACK_IMPORTED_MODULE_4__.TypedEventTarget {
+  /** @type {boolean} */
+  [symbol] = true
+  uid = `filsnap-${(0,nanoid__WEBPACK_IMPORTED_MODULE_5__.nanoid)(5)}`
+  id = 'filsnap'
+  name = 'Filsnap'
+  url = 'https://snaps.metamask.io/snap/npm/filsnap/'
+
+  /**@type {IAccount | undefined}*/
+  account = undefined
+
+  /** @type {boolean} */
+  #isConnecting
+
+  /** @type {import('filsnap-adapter').FilsnapAdapter | undefined} */
+  filsnap
+
+  /** @type {number} */
+  #index
+
+  /** @type {ReturnType<createConnector>|undefined} */
+  #connector
+
+  /** @type {import('filsnap-adapter').EIP1193Provider | undefined} */
+  #provider
+
+  /** @type {WalletSupportType} */
+  #support =
+    typeof window === 'undefined' || typeof document === 'undefined'
+      ? _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotSupported
+      : _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotChecked
+
+  /**
+   *
+   * @param {WalletConfig & ({version?: string, index?: number, syncWithProvider?: boolean} )} config
+   */
+  constructor(config = {}) {
+    super()
+    this.name = config.name ?? this.name
+    this.#index = config.index ?? 0
+    this.#isConnecting = false
+    this.version = config.version
+    this.network = config.network ?? 'mainnet'
+    this.signatureType = config.signatureType ?? 'SECP256K1'
+    this.syncWithProvider = config.syncWithProvider ?? true
+  }
+
+  /**
+   * @param {WalletAdapter} value
+   * @returns {value is WalletAdapterFilsnap}
+   */
+  static is(value) {
+    return value instanceof WalletAdapterFilsnap && symbol in value
+  }
+
+  /**
+   * @param {{ network?: Network }} [params]
+   */
+  async connect(params = {}) {
+    if (this.#isConnecting || this.connected) {
+      if (!this.account) throw new Error('Already connecting')
+      return { account: this.account, network: this.network }
+    }
+    this.#isConnecting = true
+
+    try {
+      if (params.network) {
+        this.network = params.network
+      }
+
+      const provider = this.#provider ?? (await (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.getProvider)())
+
+      this.filsnap = await filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.FilsnapAdapter.connect({
+        config: {
+          network: this.network,
+          derivationPath: (0,iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_3__.pathFromNetwork)(this.network, this.#index),
+        },
+        provider,
+        snapId: 'npm:filsnap',
+        snapVersion: this.version,
+      })
+
+      if (this.syncWithProvider) {
+        this.#connector = (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.createConnector)({
+          provider,
+          onDisconnect: () => {
+            this.disconnect()
+          },
+          onChainChanged: (network) => {
+            if (network) {
+              this.changeNetwork(network)
+            }
+          },
+        })
+        await this.#connector.connect({
+          network: this.network,
+        })
+      }
+
+      const acc = await this.filsnap.getAccount()
+      if (acc.error) {
+        throw new Error(acc.error.message, { cause: acc.error.data })
+      }
+      this.account = acc.result
+      this.emit('connect', { account: acc.result, network: this.network })
+      return { account: acc.result, network: this.network }
+    } catch (error) {
+      const err = /** @type {Error} */ (error)
+
+      this.emit('error', err)
+      throw error
+    } finally {
+      this.#isConnecting = false
+    }
+  }
+
+  get connecting() {
+    return this.#isConnecting
+  }
+
+  get connected() {
+    return this.account !== undefined
+  }
+
+  get support() {
+    return this.#support
+  }
+
+  /**
+   * @param {Network} network
+   */
+  async changeNetwork(network) {
+    if (!this.filsnap || !this.account) {
+      const err = new Error('Adapter is not connected')
+      this.emit('error', err)
+      throw err
+    }
+
+    if (this.network === network) {
+      return { account: this.account, network: this.network }
+    }
+
+    try {
+      const changeChainResult = await this.filsnap.changeNetwork(network)
+      if (changeChainResult.error) {
+        throw new Error(changeChainResult.error.message, {
+          cause: changeChainResult.error.data,
+        })
+      }
+
+      if (this.syncWithProvider && this.#connector) {
+        await this.#connector.switchChain(network)
+      }
+      this.account = changeChainResult.result.account
+      this.network = network
+      this.emit('networkChanged', {
+        network: network,
+        account: this.account,
+      })
+      return { account: this.account, network: this.network }
+    } catch (error) {
+      const err = /** @type {Error} */ (error)
+      this.emit('error', err)
+      throw error
+    }
+  }
+
+  /**
+   * @param {number } _index
+   * @returns {Promise<IAccount>}
+   */
+  async deriveAccount(_index) {
+    if (!this.account || !this.filsnap) {
+      throw new Error('Adapter is not connected')
+    }
+    if (this.#index !== _index) {
+      try {
+        const newAccount = await this.filsnap.deriveAccount(_index)
+        if (newAccount.error) {
+          throw new Error(newAccount.error.message, {
+            cause: newAccount.error.data,
+          })
+        }
+        this.#index = _index
+        this.account = newAccount.result
+        this.emit('accountChanged', this.account)
+      } catch (error) {
+        const err = /** @type {Error} */ (error)
+        this.emit('error', err)
+        throw error
+      }
+    }
+
+    return this.account
+  }
+
+  /**
+   *
+   * @param {Uint8Array} data - Data to sign
+   */
+  async sign(data) {
+    if (!this.filsnap) {
+      throw new Error('Adapter is not connected')
+    }
+    const r = await this.filsnap.sign(data)
+    if (r.error) {
+      const err = new Error(r.error.message, { cause: r.error.data })
+      this.emit('error', err)
+      throw err
+    }
+
+    return r.result
+  }
+
+  /**
+   * @type {WalletAdapter['personalSign']}
+   * @inheritdoc
+   */
+  async personalSign(data) {
+    if (!this.filsnap) {
+      throw new Error('Adapter is not connected')
+    }
+    const r = await this.filsnap.personalSign(data)
+    if (r.error) {
+      const err = new Error(r.error.message, { cause: r.error.data })
+      this.emit('error', err)
+      throw err
+    }
+
+    return r.result
+  }
+
+  /**
+   *
+   * @param {MessageObj} message - Filecoin message to sign
+   */
+  async signMessage(message) {
+    if (!this.filsnap) {
+      throw new Error('Adapter is not connected')
+    }
+
+    const { from, ...rest } = message
+    const r = await this.filsnap.signMessage(rest)
+    if (r.error) {
+      const err = new Error(r.error.message, { cause: r.error.data })
+      this.emit('error', err)
+      throw err
+    }
+    return new iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_2__.Signature({
+      type: r.result.signature.type,
+      data: iso_base_rfc4648__WEBPACK_IMPORTED_MODULE_1__.base64pad.decode(r.result.signature.data),
+    })
+  }
+
+  async checkSupport() {
+    if (this.#support !== _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotChecked) {
+      return
+    }
+    try {
+      this.#provider = await (0,filsnap_adapter__WEBPACK_IMPORTED_MODULE_0__.getProvider)()
+      this.#support = _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.Detected
+    } catch {
+      this.#support = _common_js__WEBPACK_IMPORTED_MODULE_6__.WalletSupport.NotDetected
+    }
+  }
+
+  async disconnect() {
+    if (this.filsnap) {
+      await this.filsnap.disconnect()
+    }
+    if (this.#connector) {
+      await this.#connector.disconnect()
+    }
+
+    this.filsnap = undefined
+    this.account = undefined
+    this.emit('disconnect')
+  }
+}
 
 
 /***/ }),
@@ -104498,6 +105832,1680 @@ SafeBuffer.allocUnsafeSlow = function (size) {
   }
   return buffer.SlowBuffer(size)
 }
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/classes/comparator.js":
+/*!***************************************************!*\
+  !*** ./node_modules/semver/classes/comparator.js ***!
+  \***************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const ANY = Symbol('SemVer ANY')
+// hoisted class for cyclic dependency
+class Comparator {
+  static get ANY () {
+    return ANY
+  }
+
+  constructor (comp, options) {
+    options = parseOptions(options)
+
+    if (comp instanceof Comparator) {
+      if (comp.loose === !!options.loose) {
+        return comp
+      } else {
+        comp = comp.value
+      }
+    }
+
+    comp = comp.trim().split(/\s+/).join(' ')
+    debug('comparator', comp, options)
+    this.options = options
+    this.loose = !!options.loose
+    this.parse(comp)
+
+    if (this.semver === ANY) {
+      this.value = ''
+    } else {
+      this.value = this.operator + this.semver.version
+    }
+
+    debug('comp', this)
+  }
+
+  parse (comp) {
+    const r = this.options.loose ? re[t.COMPARATORLOOSE] : re[t.COMPARATOR]
+    const m = comp.match(r)
+
+    if (!m) {
+      throw new TypeError(`Invalid comparator: ${comp}`)
+    }
+
+    this.operator = m[1] !== undefined ? m[1] : ''
+    if (this.operator === '=') {
+      this.operator = ''
+    }
+
+    // if it literally is just '>' or '' then allow anything.
+    if (!m[2]) {
+      this.semver = ANY
+    } else {
+      this.semver = new SemVer(m[2], this.options.loose)
+    }
+  }
+
+  toString () {
+    return this.value
+  }
+
+  test (version) {
+    debug('Comparator.test', version, this.options.loose)
+
+    if (this.semver === ANY || version === ANY) {
+      return true
+    }
+
+    if (typeof version === 'string') {
+      try {
+        version = new SemVer(version, this.options)
+      } catch (er) {
+        return false
+      }
+    }
+
+    return cmp(version, this.operator, this.semver, this.options)
+  }
+
+  intersects (comp, options) {
+    if (!(comp instanceof Comparator)) {
+      throw new TypeError('a Comparator is required')
+    }
+
+    if (this.operator === '') {
+      if (this.value === '') {
+        return true
+      }
+      return new Range(comp.value, options).test(this.value)
+    } else if (comp.operator === '') {
+      if (comp.value === '') {
+        return true
+      }
+      return new Range(this.value, options).test(comp.semver)
+    }
+
+    options = parseOptions(options)
+
+    // Special cases where nothing can possibly be lower
+    if (options.includePrerelease &&
+      (this.value === '<0.0.0-0' || comp.value === '<0.0.0-0')) {
+      return false
+    }
+    if (!options.includePrerelease &&
+      (this.value.startsWith('<0.0.0') || comp.value.startsWith('<0.0.0'))) {
+      return false
+    }
+
+    // Same direction increasing (> or >=)
+    if (this.operator.startsWith('>') && comp.operator.startsWith('>')) {
+      return true
+    }
+    // Same direction decreasing (< or <=)
+    if (this.operator.startsWith('<') && comp.operator.startsWith('<')) {
+      return true
+    }
+    // same SemVer and both sides are inclusive (<= or >=)
+    if (
+      (this.semver.version === comp.semver.version) &&
+      this.operator.includes('=') && comp.operator.includes('=')) {
+      return true
+    }
+    // opposite directions less than
+    if (cmp(this.semver, '<', comp.semver, options) &&
+      this.operator.startsWith('>') && comp.operator.startsWith('<')) {
+      return true
+    }
+    // opposite directions greater than
+    if (cmp(this.semver, '>', comp.semver, options) &&
+      this.operator.startsWith('<') && comp.operator.startsWith('>')) {
+      return true
+    }
+    return false
+  }
+}
+
+module.exports = Comparator
+
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
+const { safeRe: re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const cmp = __webpack_require__(/*! ../functions/cmp */ "./node_modules/semver/functions/cmp.js")
+const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
+const SemVer = __webpack_require__(/*! ./semver */ "./node_modules/semver/classes/semver.js")
+const Range = __webpack_require__(/*! ./range */ "./node_modules/semver/classes/range.js")
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/classes/range.js":
+/*!**********************************************!*\
+  !*** ./node_modules/semver/classes/range.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const SPACE_CHARACTERS = /\s+/g
+
+// hoisted class for cyclic dependency
+class Range {
+  constructor (range, options) {
+    options = parseOptions(options)
+
+    if (range instanceof Range) {
+      if (
+        range.loose === !!options.loose &&
+        range.includePrerelease === !!options.includePrerelease
+      ) {
+        return range
+      } else {
+        return new Range(range.raw, options)
+      }
+    }
+
+    if (range instanceof Comparator) {
+      // just put it in the set and return
+      this.raw = range.value
+      this.set = [[range]]
+      this.formatted = undefined
+      return this
+    }
+
+    this.options = options
+    this.loose = !!options.loose
+    this.includePrerelease = !!options.includePrerelease
+
+    // First reduce all whitespace as much as possible so we do not have to rely
+    // on potentially slow regexes like \s*. This is then stored and used for
+    // future error messages as well.
+    this.raw = range.trim().replace(SPACE_CHARACTERS, ' ')
+
+    // First, split on ||
+    this.set = this.raw
+      .split('||')
+      // map the range to a 2d array of comparators
+      .map(r => this.parseRange(r.trim()))
+      // throw out any comparator lists that are empty
+      // this generally means that it was not a valid range, which is allowed
+      // in loose mode, but will still throw if the WHOLE range is invalid.
+      .filter(c => c.length)
+
+    if (!this.set.length) {
+      throw new TypeError(`Invalid SemVer Range: ${this.raw}`)
+    }
+
+    // if we have any that are not the null set, throw out null sets.
+    if (this.set.length > 1) {
+      // keep the first one, in case they're all null sets
+      const first = this.set[0]
+      this.set = this.set.filter(c => !isNullSet(c[0]))
+      if (this.set.length === 0) {
+        this.set = [first]
+      } else if (this.set.length > 1) {
+        // if we have any that are *, then the range is just *
+        for (const c of this.set) {
+          if (c.length === 1 && isAny(c[0])) {
+            this.set = [c]
+            break
+          }
+        }
+      }
+    }
+
+    this.formatted = undefined
+  }
+
+  get range () {
+    if (this.formatted === undefined) {
+      this.formatted = ''
+      for (let i = 0; i < this.set.length; i++) {
+        if (i > 0) {
+          this.formatted += '||'
+        }
+        const comps = this.set[i]
+        for (let k = 0; k < comps.length; k++) {
+          if (k > 0) {
+            this.formatted += ' '
+          }
+          this.formatted += comps[k].toString().trim()
+        }
+      }
+    }
+    return this.formatted
+  }
+
+  format () {
+    return this.range
+  }
+
+  toString () {
+    return this.range
+  }
+
+  parseRange (range) {
+    // memoize range parsing for performance.
+    // this is a very hot path, and fully deterministic.
+    const memoOpts =
+      (this.options.includePrerelease && FLAG_INCLUDE_PRERELEASE) |
+      (this.options.loose && FLAG_LOOSE)
+    const memoKey = memoOpts + ':' + range
+    const cached = cache.get(memoKey)
+    if (cached) {
+      return cached
+    }
+
+    const loose = this.options.loose
+    // `1.2.3 - 1.2.4` => `>=1.2.3 <=1.2.4`
+    const hr = loose ? re[t.HYPHENRANGELOOSE] : re[t.HYPHENRANGE]
+    range = range.replace(hr, hyphenReplace(this.options.includePrerelease))
+    debug('hyphen replace', range)
+
+    // `> 1.2.3 < 1.2.5` => `>1.2.3 <1.2.5`
+    range = range.replace(re[t.COMPARATORTRIM], comparatorTrimReplace)
+    debug('comparator trim', range)
+
+    // `~ 1.2.3` => `~1.2.3`
+    range = range.replace(re[t.TILDETRIM], tildeTrimReplace)
+    debug('tilde trim', range)
+
+    // `^ 1.2.3` => `^1.2.3`
+    range = range.replace(re[t.CARETTRIM], caretTrimReplace)
+    debug('caret trim', range)
+
+    // At this point, the range is completely trimmed and
+    // ready to be split into comparators.
+
+    let rangeList = range
+      .split(' ')
+      .map(comp => parseComparator(comp, this.options))
+      .join(' ')
+      .split(/\s+/)
+      // >=0.0.0 is equivalent to *
+      .map(comp => replaceGTE0(comp, this.options))
+
+    if (loose) {
+      // in loose mode, throw out any that are not valid comparators
+      rangeList = rangeList.filter(comp => {
+        debug('loose invalid filter', comp, this.options)
+        return !!comp.match(re[t.COMPARATORLOOSE])
+      })
+    }
+    debug('range list', rangeList)
+
+    // if any comparators are the null set, then replace with JUST null set
+    // if more than one comparator, remove any * comparators
+    // also, don't include the same comparator more than once
+    const rangeMap = new Map()
+    const comparators = rangeList.map(comp => new Comparator(comp, this.options))
+    for (const comp of comparators) {
+      if (isNullSet(comp)) {
+        return [comp]
+      }
+      rangeMap.set(comp.value, comp)
+    }
+    if (rangeMap.size > 1 && rangeMap.has('')) {
+      rangeMap.delete('')
+    }
+
+    const result = [...rangeMap.values()]
+    cache.set(memoKey, result)
+    return result
+  }
+
+  intersects (range, options) {
+    if (!(range instanceof Range)) {
+      throw new TypeError('a Range is required')
+    }
+
+    return this.set.some((thisComparators) => {
+      return (
+        isSatisfiable(thisComparators, options) &&
+        range.set.some((rangeComparators) => {
+          return (
+            isSatisfiable(rangeComparators, options) &&
+            thisComparators.every((thisComparator) => {
+              return rangeComparators.every((rangeComparator) => {
+                return thisComparator.intersects(rangeComparator, options)
+              })
+            })
+          )
+        })
+      )
+    })
+  }
+
+  // if ANY of the sets match ALL of its comparators, then pass
+  test (version) {
+    if (!version) {
+      return false
+    }
+
+    if (typeof version === 'string') {
+      try {
+        version = new SemVer(version, this.options)
+      } catch (er) {
+        return false
+      }
+    }
+
+    for (let i = 0; i < this.set.length; i++) {
+      if (testSet(this.set[i], version, this.options)) {
+        return true
+      }
+    }
+    return false
+  }
+}
+
+module.exports = Range
+
+const LRU = __webpack_require__(/*! ../internal/lrucache */ "./node_modules/semver/internal/lrucache.js")
+const cache = new LRU()
+
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
+const Comparator = __webpack_require__(/*! ./comparator */ "./node_modules/semver/classes/comparator.js")
+const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
+const SemVer = __webpack_require__(/*! ./semver */ "./node_modules/semver/classes/semver.js")
+const {
+  safeRe: re,
+  t,
+  comparatorTrimReplace,
+  tildeTrimReplace,
+  caretTrimReplace,
+} = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+const { FLAG_INCLUDE_PRERELEASE, FLAG_LOOSE } = __webpack_require__(/*! ../internal/constants */ "./node_modules/semver/internal/constants.js")
+
+const isNullSet = c => c.value === '<0.0.0-0'
+const isAny = c => c.value === ''
+
+// take a set of comparators and determine whether there
+// exists a version which can satisfy it
+const isSatisfiable = (comparators, options) => {
+  let result = true
+  const remainingComparators = comparators.slice()
+  let testComparator = remainingComparators.pop()
+
+  while (result && remainingComparators.length) {
+    result = remainingComparators.every((otherComparator) => {
+      return testComparator.intersects(otherComparator, options)
+    })
+
+    testComparator = remainingComparators.pop()
+  }
+
+  return result
+}
+
+// comprised of xranges, tildes, stars, and gtlt's at this point.
+// already replaced the hyphen ranges
+// turn into a set of JUST comparators.
+const parseComparator = (comp, options) => {
+  debug('comp', comp, options)
+  comp = replaceCarets(comp, options)
+  debug('caret', comp)
+  comp = replaceTildes(comp, options)
+  debug('tildes', comp)
+  comp = replaceXRanges(comp, options)
+  debug('xrange', comp)
+  comp = replaceStars(comp, options)
+  debug('stars', comp)
+  return comp
+}
+
+const isX = id => !id || id.toLowerCase() === 'x' || id === '*'
+
+// ~, ~> --> * (any, kinda silly)
+// ~2, ~2.x, ~2.x.x, ~>2, ~>2.x ~>2.x.x --> >=2.0.0 <3.0.0-0
+// ~2.0, ~2.0.x, ~>2.0, ~>2.0.x --> >=2.0.0 <2.1.0-0
+// ~1.2, ~1.2.x, ~>1.2, ~>1.2.x --> >=1.2.0 <1.3.0-0
+// ~1.2.3, ~>1.2.3 --> >=1.2.3 <1.3.0-0
+// ~1.2.0, ~>1.2.0 --> >=1.2.0 <1.3.0-0
+// ~0.0.1 --> >=0.0.1 <0.1.0-0
+const replaceTildes = (comp, options) => {
+  return comp
+    .trim()
+    .split(/\s+/)
+    .map((c) => replaceTilde(c, options))
+    .join(' ')
+}
+
+const replaceTilde = (comp, options) => {
+  const r = options.loose ? re[t.TILDELOOSE] : re[t.TILDE]
+  return comp.replace(r, (_, M, m, p, pr) => {
+    debug('tilde', comp, _, M, m, p, pr)
+    let ret
+
+    if (isX(M)) {
+      ret = ''
+    } else if (isX(m)) {
+      ret = `>=${M}.0.0 <${+M + 1}.0.0-0`
+    } else if (isX(p)) {
+      // ~1.2 == >=1.2.0 <1.3.0-0
+      ret = `>=${M}.${m}.0 <${M}.${+m + 1}.0-0`
+    } else if (pr) {
+      debug('replaceTilde pr', pr)
+      ret = `>=${M}.${m}.${p}-${pr
+      } <${M}.${+m + 1}.0-0`
+    } else {
+      // ~1.2.3 == >=1.2.3 <1.3.0-0
+      ret = `>=${M}.${m}.${p
+      } <${M}.${+m + 1}.0-0`
+    }
+
+    debug('tilde return', ret)
+    return ret
+  })
+}
+
+// ^ --> * (any, kinda silly)
+// ^2, ^2.x, ^2.x.x --> >=2.0.0 <3.0.0-0
+// ^2.0, ^2.0.x --> >=2.0.0 <3.0.0-0
+// ^1.2, ^1.2.x --> >=1.2.0 <2.0.0-0
+// ^1.2.3 --> >=1.2.3 <2.0.0-0
+// ^1.2.0 --> >=1.2.0 <2.0.0-0
+// ^0.0.1 --> >=0.0.1 <0.0.2-0
+// ^0.1.0 --> >=0.1.0 <0.2.0-0
+const replaceCarets = (comp, options) => {
+  return comp
+    .trim()
+    .split(/\s+/)
+    .map((c) => replaceCaret(c, options))
+    .join(' ')
+}
+
+const replaceCaret = (comp, options) => {
+  debug('caret', comp, options)
+  const r = options.loose ? re[t.CARETLOOSE] : re[t.CARET]
+  const z = options.includePrerelease ? '-0' : ''
+  return comp.replace(r, (_, M, m, p, pr) => {
+    debug('caret', comp, _, M, m, p, pr)
+    let ret
+
+    if (isX(M)) {
+      ret = ''
+    } else if (isX(m)) {
+      ret = `>=${M}.0.0${z} <${+M + 1}.0.0-0`
+    } else if (isX(p)) {
+      if (M === '0') {
+        ret = `>=${M}.${m}.0${z} <${M}.${+m + 1}.0-0`
+      } else {
+        ret = `>=${M}.${m}.0${z} <${+M + 1}.0.0-0`
+      }
+    } else if (pr) {
+      debug('replaceCaret pr', pr)
+      if (M === '0') {
+        if (m === '0') {
+          ret = `>=${M}.${m}.${p}-${pr
+          } <${M}.${m}.${+p + 1}-0`
+        } else {
+          ret = `>=${M}.${m}.${p}-${pr
+          } <${M}.${+m + 1}.0-0`
+        }
+      } else {
+        ret = `>=${M}.${m}.${p}-${pr
+        } <${+M + 1}.0.0-0`
+      }
+    } else {
+      debug('no pr')
+      if (M === '0') {
+        if (m === '0') {
+          ret = `>=${M}.${m}.${p
+          }${z} <${M}.${m}.${+p + 1}-0`
+        } else {
+          ret = `>=${M}.${m}.${p
+          }${z} <${M}.${+m + 1}.0-0`
+        }
+      } else {
+        ret = `>=${M}.${m}.${p
+        } <${+M + 1}.0.0-0`
+      }
+    }
+
+    debug('caret return', ret)
+    return ret
+  })
+}
+
+const replaceXRanges = (comp, options) => {
+  debug('replaceXRanges', comp, options)
+  return comp
+    .split(/\s+/)
+    .map((c) => replaceXRange(c, options))
+    .join(' ')
+}
+
+const replaceXRange = (comp, options) => {
+  comp = comp.trim()
+  const r = options.loose ? re[t.XRANGELOOSE] : re[t.XRANGE]
+  return comp.replace(r, (ret, gtlt, M, m, p, pr) => {
+    debug('xRange', comp, ret, gtlt, M, m, p, pr)
+    const xM = isX(M)
+    const xm = xM || isX(m)
+    const xp = xm || isX(p)
+    const anyX = xp
+
+    if (gtlt === '=' && anyX) {
+      gtlt = ''
+    }
+
+    // if we're including prereleases in the match, then we need
+    // to fix this to -0, the lowest possible prerelease value
+    pr = options.includePrerelease ? '-0' : ''
+
+    if (xM) {
+      if (gtlt === '>' || gtlt === '<') {
+        // nothing is allowed
+        ret = '<0.0.0-0'
+      } else {
+        // nothing is forbidden
+        ret = '*'
+      }
+    } else if (gtlt && anyX) {
+      // we know patch is an x, because we have any x at all.
+      // replace X with 0
+      if (xm) {
+        m = 0
+      }
+      p = 0
+
+      if (gtlt === '>') {
+        // >1 => >=2.0.0
+        // >1.2 => >=1.3.0
+        gtlt = '>='
+        if (xm) {
+          M = +M + 1
+          m = 0
+          p = 0
+        } else {
+          m = +m + 1
+          p = 0
+        }
+      } else if (gtlt === '<=') {
+        // <=0.7.x is actually <0.8.0, since any 0.7.x should
+        // pass.  Similarly, <=7.x is actually <8.0.0, etc.
+        gtlt = '<'
+        if (xm) {
+          M = +M + 1
+        } else {
+          m = +m + 1
+        }
+      }
+
+      if (gtlt === '<') {
+        pr = '-0'
+      }
+
+      ret = `${gtlt + M}.${m}.${p}${pr}`
+    } else if (xm) {
+      ret = `>=${M}.0.0${pr} <${+M + 1}.0.0-0`
+    } else if (xp) {
+      ret = `>=${M}.${m}.0${pr
+      } <${M}.${+m + 1}.0-0`
+    }
+
+    debug('xRange return', ret)
+
+    return ret
+  })
+}
+
+// Because * is AND-ed with everything else in the comparator,
+// and '' means "any version", just remove the *s entirely.
+const replaceStars = (comp, options) => {
+  debug('replaceStars', comp, options)
+  // Looseness is ignored here.  star is always as loose as it gets!
+  return comp
+    .trim()
+    .replace(re[t.STAR], '')
+}
+
+const replaceGTE0 = (comp, options) => {
+  debug('replaceGTE0', comp, options)
+  return comp
+    .trim()
+    .replace(re[options.includePrerelease ? t.GTE0PRE : t.GTE0], '')
+}
+
+// This function is passed to string.replace(re[t.HYPHENRANGE])
+// M, m, patch, prerelease, build
+// 1.2 - 3.4.5 => >=1.2.0 <=3.4.5
+// 1.2.3 - 3.4 => >=1.2.0 <3.5.0-0 Any 3.4.x will do
+// 1.2 - 3.4 => >=1.2.0 <3.5.0-0
+// TODO build?
+const hyphenReplace = incPr => ($0,
+  from, fM, fm, fp, fpr, fb,
+  to, tM, tm, tp, tpr) => {
+  if (isX(fM)) {
+    from = ''
+  } else if (isX(fm)) {
+    from = `>=${fM}.0.0${incPr ? '-0' : ''}`
+  } else if (isX(fp)) {
+    from = `>=${fM}.${fm}.0${incPr ? '-0' : ''}`
+  } else if (fpr) {
+    from = `>=${from}`
+  } else {
+    from = `>=${from}${incPr ? '-0' : ''}`
+  }
+
+  if (isX(tM)) {
+    to = ''
+  } else if (isX(tm)) {
+    to = `<${+tM + 1}.0.0-0`
+  } else if (isX(tp)) {
+    to = `<${tM}.${+tm + 1}.0-0`
+  } else if (tpr) {
+    to = `<=${tM}.${tm}.${tp}-${tpr}`
+  } else if (incPr) {
+    to = `<${tM}.${tm}.${+tp + 1}-0`
+  } else {
+    to = `<=${to}`
+  }
+
+  return `${from} ${to}`.trim()
+}
+
+const testSet = (set, version, options) => {
+  for (let i = 0; i < set.length; i++) {
+    if (!set[i].test(version)) {
+      return false
+    }
+  }
+
+  if (version.prerelease.length && !options.includePrerelease) {
+    // Find the set of versions that are allowed to have prereleases
+    // For example, ^1.2.3-pr.1 desugars to >=1.2.3-pr.1 <2.0.0
+    // That should allow `1.2.3-pr.2` to pass.
+    // However, `1.2.4-alpha.notready` should NOT be allowed,
+    // even though it's within the range set by the comparators.
+    for (let i = 0; i < set.length; i++) {
+      debug(set[i].semver)
+      if (set[i].semver === Comparator.ANY) {
+        continue
+      }
+
+      if (set[i].semver.prerelease.length > 0) {
+        const allowed = set[i].semver
+        if (allowed.major === version.major &&
+            allowed.minor === version.minor &&
+            allowed.patch === version.patch) {
+          return true
+        }
+      }
+    }
+
+    // Version has a -pre, but it's not one of the ones we like.
+    return false
+  }
+
+  return true
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/classes/semver.js":
+/*!***********************************************!*\
+  !*** ./node_modules/semver/classes/semver.js ***!
+  \***********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const debug = __webpack_require__(/*! ../internal/debug */ "./node_modules/semver/internal/debug.js")
+const { MAX_LENGTH, MAX_SAFE_INTEGER } = __webpack_require__(/*! ../internal/constants */ "./node_modules/semver/internal/constants.js")
+const { safeRe: re, t } = __webpack_require__(/*! ../internal/re */ "./node_modules/semver/internal/re.js")
+
+const parseOptions = __webpack_require__(/*! ../internal/parse-options */ "./node_modules/semver/internal/parse-options.js")
+const { compareIdentifiers } = __webpack_require__(/*! ../internal/identifiers */ "./node_modules/semver/internal/identifiers.js")
+class SemVer {
+  constructor (version, options) {
+    options = parseOptions(options)
+
+    if (version instanceof SemVer) {
+      if (version.loose === !!options.loose &&
+        version.includePrerelease === !!options.includePrerelease) {
+        return version
+      } else {
+        version = version.version
+      }
+    } else if (typeof version !== 'string') {
+      throw new TypeError(`Invalid version. Must be a string. Got type "${typeof version}".`)
+    }
+
+    if (version.length > MAX_LENGTH) {
+      throw new TypeError(
+        `version is longer than ${MAX_LENGTH} characters`
+      )
+    }
+
+    debug('SemVer', version, options)
+    this.options = options
+    this.loose = !!options.loose
+    // this isn't actually relevant for versions, but keep it so that we
+    // don't run into trouble passing this.options around.
+    this.includePrerelease = !!options.includePrerelease
+
+    const m = version.trim().match(options.loose ? re[t.LOOSE] : re[t.FULL])
+
+    if (!m) {
+      throw new TypeError(`Invalid Version: ${version}`)
+    }
+
+    this.raw = version
+
+    // these are actually numbers
+    this.major = +m[1]
+    this.minor = +m[2]
+    this.patch = +m[3]
+
+    if (this.major > MAX_SAFE_INTEGER || this.major < 0) {
+      throw new TypeError('Invalid major version')
+    }
+
+    if (this.minor > MAX_SAFE_INTEGER || this.minor < 0) {
+      throw new TypeError('Invalid minor version')
+    }
+
+    if (this.patch > MAX_SAFE_INTEGER || this.patch < 0) {
+      throw new TypeError('Invalid patch version')
+    }
+
+    // numberify any prerelease numeric ids
+    if (!m[4]) {
+      this.prerelease = []
+    } else {
+      this.prerelease = m[4].split('.').map((id) => {
+        if (/^[0-9]+$/.test(id)) {
+          const num = +id
+          if (num >= 0 && num < MAX_SAFE_INTEGER) {
+            return num
+          }
+        }
+        return id
+      })
+    }
+
+    this.build = m[5] ? m[5].split('.') : []
+    this.format()
+  }
+
+  format () {
+    this.version = `${this.major}.${this.minor}.${this.patch}`
+    if (this.prerelease.length) {
+      this.version += `-${this.prerelease.join('.')}`
+    }
+    return this.version
+  }
+
+  toString () {
+    return this.version
+  }
+
+  compare (other) {
+    debug('SemVer.compare', this.version, this.options, other)
+    if (!(other instanceof SemVer)) {
+      if (typeof other === 'string' && other === this.version) {
+        return 0
+      }
+      other = new SemVer(other, this.options)
+    }
+
+    if (other.version === this.version) {
+      return 0
+    }
+
+    return this.compareMain(other) || this.comparePre(other)
+  }
+
+  compareMain (other) {
+    if (!(other instanceof SemVer)) {
+      other = new SemVer(other, this.options)
+    }
+
+    return (
+      compareIdentifiers(this.major, other.major) ||
+      compareIdentifiers(this.minor, other.minor) ||
+      compareIdentifiers(this.patch, other.patch)
+    )
+  }
+
+  comparePre (other) {
+    if (!(other instanceof SemVer)) {
+      other = new SemVer(other, this.options)
+    }
+
+    // NOT having a prerelease is > having one
+    if (this.prerelease.length && !other.prerelease.length) {
+      return -1
+    } else if (!this.prerelease.length && other.prerelease.length) {
+      return 1
+    } else if (!this.prerelease.length && !other.prerelease.length) {
+      return 0
+    }
+
+    let i = 0
+    do {
+      const a = this.prerelease[i]
+      const b = other.prerelease[i]
+      debug('prerelease compare', i, a, b)
+      if (a === undefined && b === undefined) {
+        return 0
+      } else if (b === undefined) {
+        return 1
+      } else if (a === undefined) {
+        return -1
+      } else if (a === b) {
+        continue
+      } else {
+        return compareIdentifiers(a, b)
+      }
+    } while (++i)
+  }
+
+  compareBuild (other) {
+    if (!(other instanceof SemVer)) {
+      other = new SemVer(other, this.options)
+    }
+
+    let i = 0
+    do {
+      const a = this.build[i]
+      const b = other.build[i]
+      debug('build compare', i, a, b)
+      if (a === undefined && b === undefined) {
+        return 0
+      } else if (b === undefined) {
+        return 1
+      } else if (a === undefined) {
+        return -1
+      } else if (a === b) {
+        continue
+      } else {
+        return compareIdentifiers(a, b)
+      }
+    } while (++i)
+  }
+
+  // preminor will bump the version up to the next minor release, and immediately
+  // down to pre-release. premajor and prepatch work the same way.
+  inc (release, identifier, identifierBase) {
+    if (release.startsWith('pre')) {
+      if (!identifier && identifierBase === false) {
+        throw new Error('invalid increment argument: identifier is empty')
+      }
+      // Avoid an invalid semver results
+      if (identifier) {
+        const match = `-${identifier}`.match(this.options.loose ? re[t.PRERELEASELOOSE] : re[t.PRERELEASE])
+        if (!match || match[1] !== identifier) {
+          throw new Error(`invalid identifier: ${identifier}`)
+        }
+      }
+    }
+
+    switch (release) {
+      case 'premajor':
+        this.prerelease.length = 0
+        this.patch = 0
+        this.minor = 0
+        this.major++
+        this.inc('pre', identifier, identifierBase)
+        break
+      case 'preminor':
+        this.prerelease.length = 0
+        this.patch = 0
+        this.minor++
+        this.inc('pre', identifier, identifierBase)
+        break
+      case 'prepatch':
+        // If this is already a prerelease, it will bump to the next version
+        // drop any prereleases that might already exist, since they are not
+        // relevant at this point.
+        this.prerelease.length = 0
+        this.inc('patch', identifier, identifierBase)
+        this.inc('pre', identifier, identifierBase)
+        break
+      // If the input is a non-prerelease version, this acts the same as
+      // prepatch.
+      case 'prerelease':
+        if (this.prerelease.length === 0) {
+          this.inc('patch', identifier, identifierBase)
+        }
+        this.inc('pre', identifier, identifierBase)
+        break
+      case 'release':
+        if (this.prerelease.length === 0) {
+          throw new Error(`version ${this.raw} is not a prerelease`)
+        }
+        this.prerelease.length = 0
+        break
+
+      case 'major':
+        // If this is a pre-major version, bump up to the same major version.
+        // Otherwise increment major.
+        // 1.0.0-5 bumps to 1.0.0
+        // 1.1.0 bumps to 2.0.0
+        if (
+          this.minor !== 0 ||
+          this.patch !== 0 ||
+          this.prerelease.length === 0
+        ) {
+          this.major++
+        }
+        this.minor = 0
+        this.patch = 0
+        this.prerelease = []
+        break
+      case 'minor':
+        // If this is a pre-minor version, bump up to the same minor version.
+        // Otherwise increment minor.
+        // 1.2.0-5 bumps to 1.2.0
+        // 1.2.1 bumps to 1.3.0
+        if (this.patch !== 0 || this.prerelease.length === 0) {
+          this.minor++
+        }
+        this.patch = 0
+        this.prerelease = []
+        break
+      case 'patch':
+        // If this is not a pre-release version, it will increment the patch.
+        // If it is a pre-release it will bump up to the same patch version.
+        // 1.2.0-5 patches to 1.2.0
+        // 1.2.0 patches to 1.2.1
+        if (this.prerelease.length === 0) {
+          this.patch++
+        }
+        this.prerelease = []
+        break
+      // This probably shouldn't be used publicly.
+      // 1.0.0 'pre' would become 1.0.0-0 which is the wrong direction.
+      case 'pre': {
+        const base = Number(identifierBase) ? 1 : 0
+
+        if (this.prerelease.length === 0) {
+          this.prerelease = [base]
+        } else {
+          let i = this.prerelease.length
+          while (--i >= 0) {
+            if (typeof this.prerelease[i] === 'number') {
+              this.prerelease[i]++
+              i = -2
+            }
+          }
+          if (i === -1) {
+            // didn't increment anything
+            if (identifier === this.prerelease.join('.') && identifierBase === false) {
+              throw new Error('invalid increment argument: identifier already exists')
+            }
+            this.prerelease.push(base)
+          }
+        }
+        if (identifier) {
+          // 1.2.0-beta.1 bumps to 1.2.0-beta.2,
+          // 1.2.0-beta.fooblz or 1.2.0-beta bumps to 1.2.0-beta.0
+          let prerelease = [identifier, base]
+          if (identifierBase === false) {
+            prerelease = [identifier]
+          }
+          if (compareIdentifiers(this.prerelease[0], identifier) === 0) {
+            if (isNaN(this.prerelease[1])) {
+              this.prerelease = prerelease
+            }
+          } else {
+            this.prerelease = prerelease
+          }
+        }
+        break
+      }
+      default:
+        throw new Error(`invalid increment argument: ${release}`)
+    }
+    this.raw = this.format()
+    if (this.build.length) {
+      this.raw += `+${this.build.join('.')}`
+    }
+    return this
+  }
+}
+
+module.exports = SemVer
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/cmp.js":
+/*!**********************************************!*\
+  !*** ./node_modules/semver/functions/cmp.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const eq = __webpack_require__(/*! ./eq */ "./node_modules/semver/functions/eq.js")
+const neq = __webpack_require__(/*! ./neq */ "./node_modules/semver/functions/neq.js")
+const gt = __webpack_require__(/*! ./gt */ "./node_modules/semver/functions/gt.js")
+const gte = __webpack_require__(/*! ./gte */ "./node_modules/semver/functions/gte.js")
+const lt = __webpack_require__(/*! ./lt */ "./node_modules/semver/functions/lt.js")
+const lte = __webpack_require__(/*! ./lte */ "./node_modules/semver/functions/lte.js")
+
+const cmp = (a, op, b, loose) => {
+  switch (op) {
+    case '===':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a === b
+
+    case '!==':
+      if (typeof a === 'object') {
+        a = a.version
+      }
+      if (typeof b === 'object') {
+        b = b.version
+      }
+      return a !== b
+
+    case '':
+    case '=':
+    case '==':
+      return eq(a, b, loose)
+
+    case '!=':
+      return neq(a, b, loose)
+
+    case '>':
+      return gt(a, b, loose)
+
+    case '>=':
+      return gte(a, b, loose)
+
+    case '<':
+      return lt(a, b, loose)
+
+    case '<=':
+      return lte(a, b, loose)
+
+    default:
+      throw new TypeError(`Invalid operator: ${op}`)
+  }
+}
+module.exports = cmp
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/compare.js":
+/*!**************************************************!*\
+  !*** ./node_modules/semver/functions/compare.js ***!
+  \**************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const SemVer = __webpack_require__(/*! ../classes/semver */ "./node_modules/semver/classes/semver.js")
+const compare = (a, b, loose) =>
+  new SemVer(a, loose).compare(new SemVer(b, loose))
+
+module.exports = compare
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/eq.js":
+/*!*********************************************!*\
+  !*** ./node_modules/semver/functions/eq.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const eq = (a, b, loose) => compare(a, b, loose) === 0
+module.exports = eq
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/gt.js":
+/*!*********************************************!*\
+  !*** ./node_modules/semver/functions/gt.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const gt = (a, b, loose) => compare(a, b, loose) > 0
+module.exports = gt
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/gte.js":
+/*!**********************************************!*\
+  !*** ./node_modules/semver/functions/gte.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const gte = (a, b, loose) => compare(a, b, loose) >= 0
+module.exports = gte
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/lt.js":
+/*!*********************************************!*\
+  !*** ./node_modules/semver/functions/lt.js ***!
+  \*********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const lt = (a, b, loose) => compare(a, b, loose) < 0
+module.exports = lt
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/lte.js":
+/*!**********************************************!*\
+  !*** ./node_modules/semver/functions/lte.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const lte = (a, b, loose) => compare(a, b, loose) <= 0
+module.exports = lte
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/neq.js":
+/*!**********************************************!*\
+  !*** ./node_modules/semver/functions/neq.js ***!
+  \**********************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const compare = __webpack_require__(/*! ./compare */ "./node_modules/semver/functions/compare.js")
+const neq = (a, b, loose) => compare(a, b, loose) !== 0
+module.exports = neq
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/functions/satisfies.js":
+/*!****************************************************!*\
+  !*** ./node_modules/semver/functions/satisfies.js ***!
+  \****************************************************/
+/***/ ((module, __unused_webpack_exports, __webpack_require__) => {
+
+"use strict";
+
+
+const Range = __webpack_require__(/*! ../classes/range */ "./node_modules/semver/classes/range.js")
+const satisfies = (version, range, options) => {
+  try {
+    range = new Range(range, options)
+  } catch (er) {
+    return false
+  }
+  return range.test(version)
+}
+module.exports = satisfies
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/constants.js":
+/*!***************************************************!*\
+  !*** ./node_modules/semver/internal/constants.js ***!
+  \***************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// Note: this is the semver.org version of the spec that it implements
+// Not necessarily the package version of this code.
+const SEMVER_SPEC_VERSION = '2.0.0'
+
+const MAX_LENGTH = 256
+const MAX_SAFE_INTEGER = Number.MAX_SAFE_INTEGER ||
+/* istanbul ignore next */ 9007199254740991
+
+// Max safe segment length for coercion.
+const MAX_SAFE_COMPONENT_LENGTH = 16
+
+// Max safe length for a build identifier. The max length minus 6 characters for
+// the shortest version with a build 0.0.0+BUILD.
+const MAX_SAFE_BUILD_LENGTH = MAX_LENGTH - 6
+
+const RELEASE_TYPES = [
+  'major',
+  'premajor',
+  'minor',
+  'preminor',
+  'patch',
+  'prepatch',
+  'prerelease',
+]
+
+module.exports = {
+  MAX_LENGTH,
+  MAX_SAFE_COMPONENT_LENGTH,
+  MAX_SAFE_BUILD_LENGTH,
+  MAX_SAFE_INTEGER,
+  RELEASE_TYPES,
+  SEMVER_SPEC_VERSION,
+  FLAG_INCLUDE_PRERELEASE: 0b001,
+  FLAG_LOOSE: 0b010,
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/debug.js":
+/*!***********************************************!*\
+  !*** ./node_modules/semver/internal/debug.js ***!
+  \***********************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+const debug = (
+  typeof process === 'object' &&
+  process.env &&
+  process.env.NODE_DEBUG &&
+  /\bsemver\b/i.test(process.env.NODE_DEBUG)
+) ? (...args) => console.error('SEMVER', ...args)
+  : () => {}
+
+module.exports = debug
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/identifiers.js":
+/*!*****************************************************!*\
+  !*** ./node_modules/semver/internal/identifiers.js ***!
+  \*****************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+const numeric = /^[0-9]+$/
+const compareIdentifiers = (a, b) => {
+  const anum = numeric.test(a)
+  const bnum = numeric.test(b)
+
+  if (anum && bnum) {
+    a = +a
+    b = +b
+  }
+
+  return a === b ? 0
+    : (anum && !bnum) ? -1
+    : (bnum && !anum) ? 1
+    : a < b ? -1
+    : 1
+}
+
+const rcompareIdentifiers = (a, b) => compareIdentifiers(b, a)
+
+module.exports = {
+  compareIdentifiers,
+  rcompareIdentifiers,
+}
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/lrucache.js":
+/*!**************************************************!*\
+  !*** ./node_modules/semver/internal/lrucache.js ***!
+  \**************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+class LRUCache {
+  constructor () {
+    this.max = 1000
+    this.map = new Map()
+  }
+
+  get (key) {
+    const value = this.map.get(key)
+    if (value === undefined) {
+      return undefined
+    } else {
+      // Remove the key from the map and add it to the end
+      this.map.delete(key)
+      this.map.set(key, value)
+      return value
+    }
+  }
+
+  delete (key) {
+    return this.map.delete(key)
+  }
+
+  set (key, value) {
+    const deleted = this.delete(key)
+
+    if (!deleted && value !== undefined) {
+      // If cache is full, delete the least recently used item
+      if (this.map.size >= this.max) {
+        const firstKey = this.map.keys().next().value
+        this.delete(firstKey)
+      }
+
+      this.map.set(key, value)
+    }
+
+    return this
+  }
+}
+
+module.exports = LRUCache
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/parse-options.js":
+/*!*******************************************************!*\
+  !*** ./node_modules/semver/internal/parse-options.js ***!
+  \*******************************************************/
+/***/ ((module) => {
+
+"use strict";
+
+
+// parse out just the options we care about
+const looseOption = Object.freeze({ loose: true })
+const emptyOpts = Object.freeze({ })
+const parseOptions = options => {
+  if (!options) {
+    return emptyOpts
+  }
+
+  if (typeof options !== 'object') {
+    return looseOption
+  }
+
+  return options
+}
+module.exports = parseOptions
+
+
+/***/ }),
+
+/***/ "./node_modules/semver/internal/re.js":
+/*!********************************************!*\
+  !*** ./node_modules/semver/internal/re.js ***!
+  \********************************************/
+/***/ ((module, exports, __webpack_require__) => {
+
+"use strict";
+
+
+const {
+  MAX_SAFE_COMPONENT_LENGTH,
+  MAX_SAFE_BUILD_LENGTH,
+  MAX_LENGTH,
+} = __webpack_require__(/*! ./constants */ "./node_modules/semver/internal/constants.js")
+const debug = __webpack_require__(/*! ./debug */ "./node_modules/semver/internal/debug.js")
+exports = module.exports = {}
+
+// The actual regexps go on exports.re
+const re = exports.re = []
+const safeRe = exports.safeRe = []
+const src = exports.src = []
+const safeSrc = exports.safeSrc = []
+const t = exports.t = {}
+let R = 0
+
+const LETTERDASHNUMBER = '[a-zA-Z0-9-]'
+
+// Replace some greedy regex tokens to prevent regex dos issues. These regex are
+// used internally via the safeRe object since all inputs in this library get
+// normalized first to trim and collapse all extra whitespace. The original
+// regexes are exported for userland consumption and lower level usage. A
+// future breaking change could export the safer regex only with a note that
+// all input should have extra whitespace removed.
+const safeRegexReplacements = [
+  ['\\s', 1],
+  ['\\d', MAX_LENGTH],
+  [LETTERDASHNUMBER, MAX_SAFE_BUILD_LENGTH],
+]
+
+const makeSafeRegex = (value) => {
+  for (const [token, max] of safeRegexReplacements) {
+    value = value
+      .split(`${token}*`).join(`${token}{0,${max}}`)
+      .split(`${token}+`).join(`${token}{1,${max}}`)
+  }
+  return value
+}
+
+const createToken = (name, value, isGlobal) => {
+  const safe = makeSafeRegex(value)
+  const index = R++
+  debug(name, index, value)
+  t[name] = index
+  src[index] = value
+  safeSrc[index] = safe
+  re[index] = new RegExp(value, isGlobal ? 'g' : undefined)
+  safeRe[index] = new RegExp(safe, isGlobal ? 'g' : undefined)
+}
+
+// The following Regular Expressions can be used for tokenizing,
+// validating, and parsing SemVer version strings.
+
+// ## Numeric Identifier
+// A single `0`, or a non-zero digit followed by zero or more digits.
+
+createToken('NUMERICIDENTIFIER', '0|[1-9]\\d*')
+createToken('NUMERICIDENTIFIERLOOSE', '\\d+')
+
+// ## Non-numeric Identifier
+// Zero or more digits, followed by a letter or hyphen, and then zero or
+// more letters, digits, or hyphens.
+
+createToken('NONNUMERICIDENTIFIER', `\\d*[a-zA-Z-]${LETTERDASHNUMBER}*`)
+
+// ## Main Version
+// Three dot-separated numeric identifiers.
+
+createToken('MAINVERSION', `(${src[t.NUMERICIDENTIFIER]})\\.` +
+                   `(${src[t.NUMERICIDENTIFIER]})\\.` +
+                   `(${src[t.NUMERICIDENTIFIER]})`)
+
+createToken('MAINVERSIONLOOSE', `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.` +
+                        `(${src[t.NUMERICIDENTIFIERLOOSE]})\\.` +
+                        `(${src[t.NUMERICIDENTIFIERLOOSE]})`)
+
+// ## Pre-release Version Identifier
+// A numeric identifier, or a non-numeric identifier.
+// Non-numberic identifiers include numberic identifiers but can be longer.
+// Therefore non-numberic identifiers must go first.
+
+createToken('PRERELEASEIDENTIFIER', `(?:${src[t.NONNUMERICIDENTIFIER]
+}|${src[t.NUMERICIDENTIFIER]})`)
+
+createToken('PRERELEASEIDENTIFIERLOOSE', `(?:${src[t.NONNUMERICIDENTIFIER]
+}|${src[t.NUMERICIDENTIFIERLOOSE]})`)
+
+// ## Pre-release Version
+// Hyphen, followed by one or more dot-separated pre-release version
+// identifiers.
+
+createToken('PRERELEASE', `(?:-(${src[t.PRERELEASEIDENTIFIER]
+}(?:\\.${src[t.PRERELEASEIDENTIFIER]})*))`)
+
+createToken('PRERELEASELOOSE', `(?:-?(${src[t.PRERELEASEIDENTIFIERLOOSE]
+}(?:\\.${src[t.PRERELEASEIDENTIFIERLOOSE]})*))`)
+
+// ## Build Metadata Identifier
+// Any combination of digits, letters, or hyphens.
+
+createToken('BUILDIDENTIFIER', `${LETTERDASHNUMBER}+`)
+
+// ## Build Metadata
+// Plus sign, followed by one or more period-separated build metadata
+// identifiers.
+
+createToken('BUILD', `(?:\\+(${src[t.BUILDIDENTIFIER]
+}(?:\\.${src[t.BUILDIDENTIFIER]})*))`)
+
+// ## Full Version String
+// A main version, followed optionally by a pre-release version and
+// build metadata.
+
+// Note that the only major, minor, patch, and pre-release sections of
+// the version string are capturing groups.  The build metadata is not a
+// capturing group, because it should not ever be used in version
+// comparison.
+
+createToken('FULLPLAIN', `v?${src[t.MAINVERSION]
+}${src[t.PRERELEASE]}?${
+  src[t.BUILD]}?`)
+
+createToken('FULL', `^${src[t.FULLPLAIN]}$`)
+
+// like full, but allows v1.2.3 and =1.2.3, which people do sometimes.
+// also, 1.0.0alpha1 (prerelease without the hyphen) which is pretty
+// common in the npm registry.
+createToken('LOOSEPLAIN', `[v=\\s]*${src[t.MAINVERSIONLOOSE]
+}${src[t.PRERELEASELOOSE]}?${
+  src[t.BUILD]}?`)
+
+createToken('LOOSE', `^${src[t.LOOSEPLAIN]}$`)
+
+createToken('GTLT', '((?:<|>)?=?)')
+
+// Something like "2.*" or "1.2.x".
+// Note that "x.x" is a valid xRange identifer, meaning "any version"
+// Only the first item is strictly required.
+createToken('XRANGEIDENTIFIERLOOSE', `${src[t.NUMERICIDENTIFIERLOOSE]}|x|X|\\*`)
+createToken('XRANGEIDENTIFIER', `${src[t.NUMERICIDENTIFIER]}|x|X|\\*`)
+
+createToken('XRANGEPLAIN', `[v=\\s]*(${src[t.XRANGEIDENTIFIER]})` +
+                   `(?:\\.(${src[t.XRANGEIDENTIFIER]})` +
+                   `(?:\\.(${src[t.XRANGEIDENTIFIER]})` +
+                   `(?:${src[t.PRERELEASE]})?${
+                     src[t.BUILD]}?` +
+                   `)?)?`)
+
+createToken('XRANGEPLAINLOOSE', `[v=\\s]*(${src[t.XRANGEIDENTIFIERLOOSE]})` +
+                        `(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})` +
+                        `(?:\\.(${src[t.XRANGEIDENTIFIERLOOSE]})` +
+                        `(?:${src[t.PRERELEASELOOSE]})?${
+                          src[t.BUILD]}?` +
+                        `)?)?`)
+
+createToken('XRANGE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAIN]}$`)
+createToken('XRANGELOOSE', `^${src[t.GTLT]}\\s*${src[t.XRANGEPLAINLOOSE]}$`)
+
+// Coercion.
+// Extract anything that could conceivably be a part of a valid semver
+createToken('COERCEPLAIN', `${'(^|[^\\d])' +
+              '(\\d{1,'}${MAX_SAFE_COMPONENT_LENGTH}})` +
+              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?` +
+              `(?:\\.(\\d{1,${MAX_SAFE_COMPONENT_LENGTH}}))?`)
+createToken('COERCE', `${src[t.COERCEPLAIN]}(?:$|[^\\d])`)
+createToken('COERCEFULL', src[t.COERCEPLAIN] +
+              `(?:${src[t.PRERELEASE]})?` +
+              `(?:${src[t.BUILD]})?` +
+              `(?:$|[^\\d])`)
+createToken('COERCERTL', src[t.COERCE], true)
+createToken('COERCERTLFULL', src[t.COERCEFULL], true)
+
+// Tilde ranges.
+// Meaning is "reasonably at or greater than"
+createToken('LONETILDE', '(?:~>?)')
+
+createToken('TILDETRIM', `(\\s*)${src[t.LONETILDE]}\\s+`, true)
+exports.tildeTrimReplace = '$1~'
+
+createToken('TILDE', `^${src[t.LONETILDE]}${src[t.XRANGEPLAIN]}$`)
+createToken('TILDELOOSE', `^${src[t.LONETILDE]}${src[t.XRANGEPLAINLOOSE]}$`)
+
+// Caret ranges.
+// Meaning is "at least and backwards compatible with"
+createToken('LONECARET', '(?:\\^)')
+
+createToken('CARETTRIM', `(\\s*)${src[t.LONECARET]}\\s+`, true)
+exports.caretTrimReplace = '$1^'
+
+createToken('CARET', `^${src[t.LONECARET]}${src[t.XRANGEPLAIN]}$`)
+createToken('CARETLOOSE', `^${src[t.LONECARET]}${src[t.XRANGEPLAINLOOSE]}$`)
+
+// A simple gt/lt/eq thing, or just "" to indicate "any version"
+createToken('COMPARATORLOOSE', `^${src[t.GTLT]}\\s*(${src[t.LOOSEPLAIN]})$|^$`)
+createToken('COMPARATOR', `^${src[t.GTLT]}\\s*(${src[t.FULLPLAIN]})$|^$`)
+
+// An expression to strip any whitespace between the gtlt and the thing
+// it modifies, so that `> 1.2.3` ==> `>1.2.3`
+createToken('COMPARATORTRIM', `(\\s*)${src[t.GTLT]
+}\\s*(${src[t.LOOSEPLAIN]}|${src[t.XRANGEPLAIN]})`, true)
+exports.comparatorTrimReplace = '$1$2$3'
+
+// Something like `1.2.3 - 1.2.4`
+// Note that these all use the loose form, because they'll be
+// checked against either the strict or loose comparator form
+// later.
+createToken('HYPHENRANGE', `^\\s*(${src[t.XRANGEPLAIN]})` +
+                   `\\s+-\\s+` +
+                   `(${src[t.XRANGEPLAIN]})` +
+                   `\\s*$`)
+
+createToken('HYPHENRANGELOOSE', `^\\s*(${src[t.XRANGEPLAINLOOSE]})` +
+                        `\\s+-\\s+` +
+                        `(${src[t.XRANGEPLAINLOOSE]})` +
+                        `\\s*$`)
+
+// Star ranges basically just allow anything at all.
+createToken('STAR', '(<|>)?=?\\s*\\*')
+// >=0.0.0 is like a star
+createToken('GTE0', '^\\s*>=\\s*0\\.0\\.0\\s*$')
+createToken('GTE0PRE', '^\\s*>=\\s*0\\.0\\.0-0\\s*$')
 
 
 /***/ }),
@@ -159131,13 +162139,14 @@ __webpack_require__.r(__webpack_exports__);
 /* harmony import */ var iso_filecoin_rpc__WEBPACK_IMPORTED_MODULE_7__ = __webpack_require__(/*! iso-filecoin/rpc */ "./node_modules/iso-filecoin/src/rpc.js");
 /* harmony import */ var iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_8__ = __webpack_require__(/*! iso-filecoin/signature */ "./node_modules/iso-filecoin/src/signature.js");
 /* harmony import */ var iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_9__ = __webpack_require__(/*! iso-filecoin/utils */ "./node_modules/iso-filecoin/src/utils.js");
-/* harmony import */ var iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! iso-filecoin-wallets/hd */ "./node_modules/iso-filecoin-wallets/src/hd.js");
-/* harmony import */ var iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! iso-filecoin-wallets/ledger */ "./node_modules/iso-filecoin-wallets/src/ledger.js");
-/* harmony import */ var iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! iso-filecoin-wallets/local */ "./node_modules/iso-filecoin-wallets/src/local.js");
-/* harmony import */ var _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! @reown/appkit/networks */ "./node_modules/@reown/appkit/dist/esm/exports/networks.js");
-/* harmony import */ var _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @walletconnect/universal-provider */ "./node_modules/@walletconnect/universal-provider/dist/index.es.js");
-/* harmony import */ var _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @bitcoinerlab/secp256k1 */ "./node_modules/@bitcoinerlab/secp256k1/dist/index.js");
-/* harmony import */ var bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
+/* harmony import */ var iso_filecoin_wallets_filsnap__WEBPACK_IMPORTED_MODULE_10__ = __webpack_require__(/*! iso-filecoin-wallets/filsnap */ "./node_modules/iso-filecoin-wallets/src/filsnap.js");
+/* harmony import */ var iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_11__ = __webpack_require__(/*! iso-filecoin-wallets/hd */ "./node_modules/iso-filecoin-wallets/src/hd.js");
+/* harmony import */ var iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_12__ = __webpack_require__(/*! iso-filecoin-wallets/ledger */ "./node_modules/iso-filecoin-wallets/src/ledger.js");
+/* harmony import */ var iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_13__ = __webpack_require__(/*! iso-filecoin-wallets/local */ "./node_modules/iso-filecoin-wallets/src/local.js");
+/* harmony import */ var _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_14__ = __webpack_require__(/*! @reown/appkit/networks */ "./node_modules/@reown/appkit/dist/esm/exports/networks.js");
+/* harmony import */ var _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_15__ = __webpack_require__(/*! @walletconnect/universal-provider */ "./node_modules/@walletconnect/universal-provider/dist/index.es.js");
+/* harmony import */ var _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__ = __webpack_require__(/*! @bitcoinerlab/secp256k1 */ "./node_modules/@bitcoinerlab/secp256k1/dist/index.js");
+/* harmony import */ var bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__ = __webpack_require__(/*! bitcoinjs-lib */ "./node_modules/bitcoinjs-lib/src/index.js");
 
 
 
@@ -159148,7 +162157,7 @@ __webpack_require__.r(__webpack_exports__);
 
 
 
-// import { WalletAdapterFilsnap } from 'iso-filecoin-wallets/filsnap';
+
 
 
 
@@ -159157,10 +162166,10 @@ __webpack_require__.r(__webpack_exports__);
 
 
 window.Buffer = buffer__WEBPACK_IMPORTED_MODULE_0__.Buffer;
-window.mainnet = _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_13__.mainnet;
-window.ecc = _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__;
-bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__.initEccLib(_bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_15__);
-window.bitcoin = bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_16__;
+window.mainnet = _reown_appkit_networks__WEBPACK_IMPORTED_MODULE_14__.mainnet;
+window.ecc = _bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__;
+bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__.initEccLib(_bitcoinerlab_secp256k1__WEBPACK_IMPORTED_MODULE_16__);
+window.bitcoin = bitcoinjs_lib__WEBPACK_IMPORTED_MODULE_17__;
 
 window.XRPL = {
     Client: xrpl__WEBPACK_IMPORTED_MODULE_2__.Client, decode: xrpl__WEBPACK_IMPORTED_MODULE_2__.decode
@@ -159175,14 +162184,14 @@ window.Filecoin = {
     Signature: iso_filecoin_signature__WEBPACK_IMPORTED_MODULE_8__,
     Utils: iso_filecoin_utils__WEBPACK_IMPORTED_MODULE_9__,
     Adapters: {
-        // Filsnap: WalletAdapterFilsnap, // Temporarily disabled due to import issues
-        Hd: iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_10__.WalletAdapterHd,
-        Ledger: iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_11__.WalletAdapterLedger,
-        Raw: iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_12__.WalletAdapterRaw
+        Filsnap: iso_filecoin_wallets_filsnap__WEBPACK_IMPORTED_MODULE_10__.WalletAdapterFilsnap,
+        Hd: iso_filecoin_wallets_hd__WEBPACK_IMPORTED_MODULE_11__.WalletAdapterHd,
+        Ledger: iso_filecoin_wallets_ledger__WEBPACK_IMPORTED_MODULE_12__.WalletAdapterLedger,
+        Raw: iso_filecoin_wallets_local__WEBPACK_IMPORTED_MODULE_13__.WalletAdapterRaw
     }
 }
 
-window.UniversalProvider = _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_14__["default"];
+window.UniversalProvider = _walletconnect_universal_provider__WEBPACK_IMPORTED_MODULE_15__["default"];
 window.createAppKit = _reown_appkit__WEBPACK_IMPORTED_MODULE_1__.createAppKit;
 
 

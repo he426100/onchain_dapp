@@ -24,6 +24,12 @@ module.exports = {
                 test: /\.css$/i, // Match CSS files
                 use: ["style-loader", "css-loader"], // Loaders to process CSS
             },
+            {
+                test: /node_modules\/filsnap-adapter\/.*\.js$/,
+                resolve: {
+                    fullySpecified: false
+                }
+            }
         ],
     },
     resolve: {
@@ -43,6 +49,10 @@ module.exports = {
             // Add other Node.js core modules here as needed
         },
         extensions: [".js", ".jsx", ".css",".wasm"], // Ensure Webpack recognizes CSS files
+        extensionAlias: {
+            ".js": [".ts", ".js"],
+            ".mjs": [".mts", ".mjs"]
+        }
 
     },
     plugins: [

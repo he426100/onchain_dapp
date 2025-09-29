@@ -162,22 +162,68 @@ async function getAccountInfo() {
  * 切换网络
  */
 async function switchNetwork() {
+    console.log("=== Starting network switch ===");
+    console.log("Current adapter:", currentAdapter);
+    console.log("Is connected:", currentAdapter?.connected);
+
     if (!currentAdapter || !currentAdapter.connected) {
         alert('Please connect a wallet first!');
         return;
     }
 
-    const network = confirm("Switch to testnet? (Cancel for mainnet)") ? 'testnet' : 'mainnet';
+    console.log("Current network before switch:", currentAdapter.network);
+
+    // 根据当前网络动态生成提示信息
+    const currentNetwork = currentAdapter.network;
+    const targetNetwork = currentNetwork === 'mainnet' ? 'testnet' : 'mainnet';
+    const shouldSwitch = confirm(`Current network: ${currentNetwork}\nSwitch to ${targetNetwork}?`);
+    const network = shouldSwitch ? targetNetwork : currentNetwork;
+
+    console.log(`User chose to switch: ${shouldSwitch}, target network: ${network}`);
 
     await utils.runMethod({
         method: "switchNetwork",
         asyncFunc: async function() {
-            const result = await currentAdapter.changeNetwork({ network });
-            return {
-                oldNetwork: currentAdapter.network,
-                newNetwork: result.network,
-                newAddress: result.account.address.toString()
-            };
+            try {
+                console.log("About to call changeNetwork with:", network);
+                console.log("Current network is:", currentAdapter.network);
+
+                // 记录切换前的网络
+                const oldNetwork = currentAdapter.network;
+
+                // 检查是否尝试切换到相同的网络
+                if (oldNetwork === network) {
+                    console.log("Already on the target network, no change needed");
+                    return {
+                        oldNetwork: oldNetwork,
+                        newNetwork: network,
+                        message: "Already on the target network"
+                    };
+                }
+
+                // 注意：changeNetwork 方法接收网络名称作为直接参数，不是对象
+                const result = await currentAdapter.changeNetwork(network);
+                console.log("Network switch result:", result);
+
+                // 验证网络是否真的切换了
+                console.log("Network after switch - currentAdapter.network:", currentAdapter.network);
+                console.log("Network after switch - result.network:", result.network);
+
+                return {
+                    oldNetwork: oldNetwork,
+                    newNetwork: result.network, // 使用 result.network 而不是 currentAdapter.network
+                    newAddress: result.account.address.toString(),
+                    actualCurrentNetwork: currentAdapter.network
+                };
+            } catch (error) {
+                console.error("Error in changeNetwork:", error);
+                console.error("Error details:", {
+                    message: error.message,
+                    stack: error.stack,
+                    cause: error.cause
+                });
+                throw error;
+            }
         }
     });
 }
@@ -196,12 +242,36 @@ async function signMessage() {
     await utils.runMethod({
         method: "signMessage",
         asyncFunc: async function() {
-            const signature = await currentAdapter.signMessage(message);
-            return {
-                message: message,
-                signature: signature.toString(),
-                address: currentAdapter.account.address.toString()
-            };
+            try {
+                // 尝试使用基本的 sign 方法而不是 personalSign
+                const messageBytes = new TextEncoder().encode(message);
+                const signature = await currentAdapter.sign(messageBytes);
+                return {
+                    message: message,
+                    signature: signature,
+                    address: currentAdapter.account.address.toString()
+                };
+            } catch (error) {
+                console.error("Error in signing:", error);
+
+                // 如果 sign 方法失败，尝试使用 signMessage 方法
+                try {
+                    console.log("Trying signMessage method...");
+                    const messageObj = {
+                        data: message
+                    };
+                    const signature = await currentAdapter.signMessage(messageObj);
+                    return {
+                        message: message,
+                        signature: signature.toString(),
+                        address: currentAdapter.account.address.toString(),
+                        method: "signMessage"
+                    };
+                } catch (error2) {
+                    console.error("Both signing methods failed:", error2);
+                    throw new Error(`Signing failed: ${error.message} and ${error2.message}`);
+                }
+            }
         }
     });
 }
@@ -237,7 +307,7 @@ async function sendTransaction() {
                 method: 0
             };
 
-            const signedMessage = await currentAdapter.signTransaction(message);
+            const signedMessage = await currentAdapter.signMessage(message);
 
             // 实际应用中这里应该广播交易到网络
             return {

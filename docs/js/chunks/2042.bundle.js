@@ -367,7 +367,7 @@
           You will have to reconnect for security reasons
         </wui-text>
       </wui-flex>
-    `}};k=function(e,t,o,i){var r,n=arguments.length,a=n<3?t:null===i?i=Object.getOwnPropertyDescriptor(t,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,o,i);else for(var s=e.length-1;s>=0;s--)(r=e[s])&&(a=(n<3?r(a):n>3?r(t,o,a):r(t,o))||a);return n>3&&a&&Object.defineProperty(t,o,a),a}([(0,l.EM)("w3m-upgrade-wallet-view")],k);var R=o(97832),S=o(24376),z=o(24549),E=o(63450),A=o(26742),M=o(90184),T=o(74496),C=o(6056),O=o(21871);o(83383),o(96363);const Z=f.AH`
+    `}};k=function(e,t,o,i){var r,n=arguments.length,a=n<3?t:null===i?i=Object.getOwnPropertyDescriptor(t,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,o,i);else for(var s=e.length-1;s>=0;s--)(r=e[s])&&(a=(n<3?r(a):n>3?r(t,o,a):r(t,o))||a);return n>3&&a&&Object.defineProperty(t,o,a),a}([(0,l.EM)("w3m-upgrade-wallet-view")],k);var R=o(7610),S=o(24376),z=o(24549),E=o(63450),A=o(26742),M=o(90184),T=o(74496),C=o(6056),O=o(21871);o(83383),o(96363);const Z=f.AH`
   :host {
     width: 100%;
   }
@@ -580,7 +580,7 @@
       <wui-button fullWidth size="lg" borderRadius="xs" @click=${this.redirectToAccount.bind(this)}
         >Let's Go!
       </wui-button>
-    </wui-flex>`}redirectToAccount(){V.I.replace("Account")}};L.styles=K,L=function(e,t,o,i){var r,n=arguments.length,a=n<3?t:null===i?i=Object.getOwnPropertyDescriptor(t,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,o,i);else for(var s=e.length-1;s>=0;s--)(r=e[s])&&(a=(n<3?r(a):n>3?r(t,o,a):r(t,o))||a);return n>3&&a&&Object.defineProperty(t,o,a),a}([(0,l.EM)("w3m-register-account-name-success-view")],L)},82673:(e,t,o)=>{var i=o(12618),r=o(25707),n=o(60031),a=o(97832),s=(o(91226),o(65548),o(85886)),c=o(15181);const d=o(10982).AH`
+    </wui-flex>`}redirectToAccount(){V.I.replace("Account")}};L.styles=K,L=function(e,t,o,i){var r,n=arguments.length,a=n<3?t:null===i?i=Object.getOwnPropertyDescriptor(t,o):i;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,o,i);else for(var s=e.length-1;s>=0;s--)(r=e[s])&&(a=(n<3?r(a):n>3?r(t,o,a):r(t,o))||a);return n>3&&a&&Object.defineProperty(t,o,a),a}([(0,l.EM)("w3m-register-account-name-success-view")],L)},82673:(e,t,o)=>{var i=o(12618),r=o(25707),n=o(60031),a=o(7610),s=(o(91226),o(65548),o(85886)),c=o(15181);const d=o(10982).AH`
   :host {
     position: relative;
     width: 100%;

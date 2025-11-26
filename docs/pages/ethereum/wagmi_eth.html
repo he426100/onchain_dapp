@@ -1,0 +1,31 @@
+<!-- Ethereum Wagmi Standard Implementation -->
+<!DOCTYPE html>
+<html lang="zh-CN">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ethereum Wagmi</title>
+    <script src="../../bundle.js"></script>
+    <script src="../../scripts/ethereum/wagmi_eth.mjs" type="module"></script>
+    <link rel="icon" type="image/x-icon" href="../../statics/favicon.ico"/>
+</head>
+
+<body>
+    <button onclick="onChainDapp.wagmiEthereum.connect()">Connect</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.requestAccounts()">Request Accounts</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.personalSign()">Personal Sign</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.signTypedDataV3()">Sign TypedData (V3)</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.signTypedDataV4()">Sign TypedData V4</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.addEthereumChain()">Import Chain</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.sendTransaction()">Send Transaction</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.listenOnChainChanged()">Listen on chain changed</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.listenAccountChanges()">Listen on account changed</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.listenOnMessage()">Listen on message</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.subscribe()">Subscribe</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.getBalance()">Get Balance</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.disconnect()">Disconnect</button><br><br>
+    <button onclick="onChainDapp.wagmiEthereum.switchNetwork()">Switch Network</button><br><br>
+</body>
+
+</html>

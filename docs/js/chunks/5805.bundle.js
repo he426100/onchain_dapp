@@ -35,7 +35,101 @@
           stroke-dashoffset=${s}
         />
       </svg>
-    `}};l.styles=[s.W5,n],c([(0,r.MZ)({type:Number})],l.prototype,"radius",void 0),l=c([(0,a.E)("wui-loading-thumbnail")],l)},20645:(e,t,i)=>{i(91226)},32321:(e,t,i)=>{i(63274)},41520:(e,t,i)=>{var o=i(12618),r=i(25707),s=(i(91226),i(85886)),a=i(15181);const n=i(10982).AH`
+    `}};l.styles=[s.W5,n],c([(0,r.MZ)({type:Number})],l.prototype,"radius",void 0),l=c([(0,a.E)("wui-loading-thumbnail")],l)},16858:(e,t,i)=>{var o=i(12618),r=i(25707),s=(i(91226),i(53576),i(34766),i(87583));function a(e,t,i){return e!==t&&(e-t<0?t-e:e-t)<=i+.1}const n={generate({uri:e,size:t,logoSize:i,padding:r=8,dotColor:n="var(--apkt-colors-black)"}){const c=[],l=function(e){const t=Array.prototype.slice.call(s.create(e,{errorCorrectionLevel:"Q"}).modules.data,0),i=Math.sqrt(t.length);return t.reduce((e,t,o)=>(o%i===0?e.push([t]):e[e.length-1].push(t))&&e,[])}(e),d=(t-2*r)/l.length,h=[{x:0,y:0},{x:1,y:0},{x:0,y:1}];h.forEach(({x:e,y:t})=>{const i=(l.length-7)*d*e+r,s=(l.length-7)*d*t+r,a=.45;for(let e=0;e<h.length;e+=1){const t=d*(7-2*e);c.push(o.JW`
+            <rect
+              fill=${2===e?"var(--apkt-colors-black)":"var(--apkt-colors-white)"}
+              width=${0===e?t-10:t}
+              rx= ${0===e?(t-10)*a:t*a}
+              ry= ${0===e?(t-10)*a:t*a}
+              stroke=${n}
+              stroke-width=${0===e?10:0}
+              height=${0===e?t-10:t}
+              x= ${0===e?s+d*e+5:s+d*e}
+              y= ${0===e?i+d*e+5:i+d*e}
+            />
+          `)}});const u=Math.floor((i+25)/d),p=l.length/2-u/2,g=l.length/2+u/2-1,w=[];l.forEach((e,t)=>{e.forEach((e,i)=>{if(l[t][i]&&!(t<7&&i<7||t>l.length-8&&i<7||t<7&&i>l.length-8||t>p&&t<g&&i>p&&i<g)){const e=t*d+d/2+r,o=i*d+d/2+r;w.push([e,o])}})});const b={};return w.forEach(([e,t])=>{b[e]?b[e]?.push(t):b[e]=[t]}),Object.entries(b).map(([e,t])=>{const i=t.filter(e=>t.every(t=>!a(e,t,d)));return[Number(e),i]}).forEach(([e,t])=>{t.forEach(t=>{c.push(o.JW`<circle cx=${e} cy=${t} fill=${n} r=${d/2.5} />`)})}),Object.entries(b).filter(([e,t])=>t.length>1).map(([e,t])=>{const i=t.filter(e=>t.some(t=>a(e,t,d)));return[Number(e),i]}).map(([e,t])=>{t.sort((e,t)=>e<t?-1:1);const i=[];for(const e of t){const t=i.find(t=>t.some(t=>a(e,t,d)));t?t.push(e):i.push([e])}return[e,i.map(e=>[e[0],e[e.length-1]])]}).forEach(([e,t])=>{t.forEach(([t,i])=>{c.push(o.JW`
+              <line
+                x1=${e}
+                x2=${e}
+                y1=${t}
+                y2=${i}
+                stroke=${n}
+                stroke-width=${d/1.25}
+                stroke-linecap="round"
+              />
+            `)})}),c}};var c=i(85886),l=i(15181);const d=i(10982).AH`
+  :host {
+    position: relative;
+    user-select: none;
+    display: block;
+    overflow: hidden;
+    aspect-ratio: 1 / 1;
+    width: 100%;
+    height: 100%;
+    background-color: ${({colors:e})=>e.white};
+    border: 1px solid ${({tokens:e})=>e.theme.borderPrimary};
+  }
+
+  :host {
+    border-radius: ${({borderRadius:e})=>e[4]};
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  :host([data-clear='true']) > wui-icon {
+    display: none;
+  }
+
+  svg:first-child,
+  wui-image,
+  wui-icon {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translateY(-50%) translateX(-50%);
+    background-color: ${({tokens:e})=>e.theme.backgroundPrimary};
+    box-shadow: inset 0 0 0 4px ${({tokens:e})=>e.theme.backgroundPrimary};
+    border-radius: ${({borderRadius:e})=>e[6]};
+  }
+
+  wui-image {
+    width: 25%;
+    height: 25%;
+    border-radius: ${({borderRadius:e})=>e[2]};
+  }
+
+  wui-icon {
+    width: 100%;
+    height: 100%;
+    color: #3396ff !important;
+    transform: translateY(-50%) translateX(-50%) scale(0.25);
+  }
+
+  wui-icon > svg {
+    width: inherit;
+    height: inherit;
+  }
+`;var h=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let u=class extends o.WF{constructor(){super(...arguments),this.uri="",this.size=0,this.theme="dark",this.imageSrc=void 0,this.alt=void 0,this.arenaClear=void 0,this.farcaster=void 0}render(){return this.dataset.theme=this.theme,this.dataset.clear=String(this.arenaClear),this.style.cssText=`--local-size: ${this.size}px`,o.qy`<wui-flex
+      alignItems="center"
+      justifyContent="center"
+      class="wui-qr-code"
+      direction="column"
+      gap="4"
+      width="100%"
+      style="height: 100%"
+    >
+      ${this.templateVisual()} ${this.templateSvg()}
+    </wui-flex>`}templateSvg(){return o.JW`
+      <svg height=${this.size} width=${this.size}>
+        ${n.generate({uri:this.uri,size:this.size,logoSize:this.arenaClear?0:this.size/4})}
+      </svg>
+    `}templateVisual(){return this.imageSrc?o.qy`<wui-image src=${this.imageSrc} alt=${this.alt??"logo"}></wui-image>`:this.farcaster?o.qy`<wui-icon
+        class="farcaster"
+        size="inherit"
+        color="inherit"
+        name="farcaster"
+      ></wui-icon>`:o.qy`<wui-icon size="inherit" color="inherit" name="walletConnect"></wui-icon>`}};u.styles=[c.W5,d],h([(0,r.MZ)()],u.prototype,"uri",void 0),h([(0,r.MZ)({type:Number})],u.prototype,"size",void 0),h([(0,r.MZ)()],u.prototype,"theme",void 0),h([(0,r.MZ)()],u.prototype,"imageSrc",void 0),h([(0,r.MZ)()],u.prototype,"alt",void 0),h([(0,r.MZ)({type:Boolean})],u.prototype,"arenaClear",void 0),h([(0,r.MZ)({type:Boolean})],u.prototype,"farcaster",void 0),u=h([(0,l.E)("wui-qr-code")],u)},20645:(e,t,i)=>{i(91226)},32321:(e,t,i)=>{i(63274)},41520:(e,t,i)=>{var o=i(12618),r=i(25707),s=(i(91226),i(85886)),a=i(15181);const n=i(10982).AH`
   :host {
     display: flex;
     justify-content: center;
@@ -50,7 +144,66 @@
     width: 100%;
     height: 100%;
   }
-`;var c=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let l=class extends o.WF{constructor(){super(...arguments),this.logo="google"}render(){return o.qy`<wui-icon color="inherit" size="inherit" name=${this.logo}></wui-icon> `}};l.styles=[s.W5,n],c([(0,r.MZ)()],l.prototype,"logo",void 0),l=c([(0,a.E)("wui-logo")],l)},51454:(e,t,i)=>{i.d(t,{o:()=>a});var o=i(68126),r=i(4707);const s=(0,o.BX)({isLegalCheckboxChecked:!1}),a={state:s,subscribe:e=>(0,o.B1)(s,()=>e(s)),subscribeKey:(e,t)=>(0,r.u$)(s,e,t),setIsLegalCheckboxChecked(e){s.isLegalCheckboxChecked=e}}},63274:(e,t,i)=>{var o=i(12618),r=i(25707),s=i(15181);const a=i(10982).AH`
+`;var c=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let l=class extends o.WF{constructor(){super(...arguments),this.logo="google"}render(){return o.qy`<wui-icon color="inherit" size="inherit" name=${this.logo}></wui-icon> `}};l.styles=[s.W5,n],c([(0,r.MZ)()],l.prototype,"logo",void 0),l=c([(0,a.E)("wui-logo")],l)},51454:(e,t,i)=>{i.d(t,{o:()=>a});var o=i(68126),r=i(4707);const s=(0,o.BX)({isLegalCheckboxChecked:!1}),a={state:s,subscribe:e=>(0,o.B1)(s,()=>e(s)),subscribeKey:(e,t)=>(0,r.u$)(s,e,t),setIsLegalCheckboxChecked(e){s.isLegalCheckboxChecked=e}}},53576:(e,t,i)=>{var o=i(12618),r=i(25707),s=i(60031),a=i(85886),n=i(15181);const c=i(10982).AH`
+  :host {
+    display: block;
+    width: var(--local-width);
+    height: var(--local-height);
+  }
+
+  img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center center;
+    border-radius: inherit;
+    user-select: none;
+    user-drag: none;
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+  }
+
+  :host([data-boxed='true']) {
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: ${({tokens:e})=>e.theme.foregroundPrimary};
+    border-radius: ${({borderRadius:e})=>e[2]};
+  }
+
+  :host([data-boxed='true']) img {
+    width: 20px;
+    height: 20px;
+    border-radius: ${({borderRadius:e})=>e[16]};
+  }
+
+  :host([data-full='true']) img {
+    width: 100%;
+    height: 100%;
+  }
+
+  :host([data-boxed='true']) wui-icon {
+    width: 20px;
+    height: 20px;
+  }
+
+  :host([data-icon='error']) {
+    background-color: ${({tokens:e})=>e.core.backgroundError};
+  }
+
+  :host([data-rounded='true']) {
+    border-radius: ${({borderRadius:e})=>e[16]};
+  }
+`;var l=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let d=class extends o.WF{constructor(){super(...arguments),this.src="./path/to/image.jpg",this.alt="Image",this.size=void 0,this.boxed=!1,this.rounded=!1,this.fullSize=!1}render(){const e={inherit:"inherit",xxs:"2",xs:"3",sm:"4",md:"4",mdl:"5",lg:"5",xl:"6",xxl:"7","3xl":"8","4xl":"9","5xl":"10"};return this.style.cssText=`\n      --local-width: ${this.size?`var(--apkt-spacing-${e[this.size]});`:"100%"};\n      --local-height: ${this.size?`var(--apkt-spacing-${e[this.size]});`:"100%"};\n      `,this.dataset.boxed=this.boxed?"true":"false",this.dataset.rounded=this.rounded?"true":"false",this.dataset.full=this.fullSize?"true":"false",this.dataset.icon=this.iconColor||"inherit",this.icon?o.qy`<wui-icon
+        color=${this.iconColor||"inherit"}
+        name=${this.icon}
+        size="lg"
+      ></wui-icon> `:this.logo?o.qy`<wui-icon size="lg" color="inherit" name=${this.logo}></wui-icon> `:o.qy`<img src=${(0,s.J)(this.src)} alt=${this.alt} @error=${this.handleImageError} />`}handleImageError(){this.dispatchEvent(new CustomEvent("onLoadError",{bubbles:!0,composed:!0}))}};d.styles=[a.W5,c],l([(0,r.MZ)()],d.prototype,"src",void 0),l([(0,r.MZ)()],d.prototype,"logo",void 0),l([(0,r.MZ)()],d.prototype,"icon",void 0),l([(0,r.MZ)()],d.prototype,"iconColor",void 0),l([(0,r.MZ)()],d.prototype,"alt",void 0),l([(0,r.MZ)()],d.prototype,"size",void 0),l([(0,r.MZ)({type:Boolean})],d.prototype,"boxed",void 0),l([(0,r.MZ)({type:Boolean})],d.prototype,"rounded",void 0),l([(0,r.MZ)({type:Boolean})],d.prototype,"fullSize",void 0),d=l([(0,n.E)("wui-image")],d)},63274:(e,t,i)=>{var o=i(12618),r=i(25707),s=i(15181);const a=i(10982).AH`
   :host {
     display: block;
     background: linear-gradient(
@@ -113,7 +266,7 @@
         </wui-flex>
         <wui-icon name="chevronRight" size="lg" color="default"></wui-icon>
       </button>
-    `}};d.styles=[a.W5,a.fD,c],l([(0,r.MZ)()],d.prototype,"logo",void 0),l([(0,r.MZ)()],d.prototype,"name",void 0),l([(0,r.MZ)()],d.prototype,"tabIdx",void 0),l([(0,r.MZ)({type:Boolean})],d.prototype,"disabled",void 0),d=l([(0,n.E)("wui-list-social")],d)},71801:(e,t,i)=>{i.d(t,{Up:()=>u});var o=i(24376),r=i(63450),s=i(6056),a=i(36010),n=i(90184),c=i(78508),l=i(21871),d=i(26742),h=i(27508);async function u(e){r.U.setSocialProvider(e,s.W.state.activeChain),n.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_STARTED",properties:{provider:e}}),"farcaster"===e?await async function(){c.I.push("ConnectingFarcaster");const e=a.a.getAuthConnector();if(e&&!r.U.state.farcasterUrl)try{const{url:t}=await e.provider.getFarcasterUri();r.U.setFarcasterUrl(t,s.W.state.activeChain)}catch(e){c.I.goBack(),l.P.showError(e)}}():await async function(e){c.I.push("ConnectingSocial");const t=a.a.getAuthConnector();let i=null;try{const a=setTimeout(()=>{throw new Error("Social login timed out. Please try again.")},45e3);if(t&&e){if(d.w.isTelegram()||(i=function(){try{return d.w.returnOpenHref(`${o.o.SECURE_SITE_SDK_ORIGIN}/loading`,"popupWindow","width=600,height=800,scrollbars=yes")}catch(e){throw new Error("Could not open social popup")}}()),i)r.U.setSocialWindow(i,s.W.state.activeChain);else if(!d.w.isTelegram())throw new Error("Could not create social popup");const{uri:n}=await t.provider.getSocialRedirectUri({provider:e});if(!n)throw i?.close(),new Error("Could not fetch the social redirect uri");if(i&&(i.location.href=n),d.w.isTelegram()){h.i.setTelegramSocialProvider(e);const t=d.w.formatTelegramSocialLoginUrl(n);d.w.openHref(t,"_top")}clearTimeout(a)}}catch(e){i?.close(),l.P.showError(e?.message)}}(e)}},75805:(e,t,i)=>{i.r(t),i.d(t,{W3mConnectSocialsView:()=>x,W3mConnectingFarcasterView:()=>j,W3mConnectingSocialView:()=>L});var o=i(12618),r=i(25707),s=i(60031),a=i(51454),n=i(42733),c=i(81729),l=(i(6387),i(86074),i(36010)),d=i(78508),h=i(62944),u=i(71655),p=i(71801),g=i(26742),w=(i(68239),i(79835));const b=c.AH`
+    `}};d.styles=[a.W5,a.fD,c],l([(0,r.MZ)()],d.prototype,"logo",void 0),l([(0,r.MZ)()],d.prototype,"name",void 0),l([(0,r.MZ)()],d.prototype,"tabIdx",void 0),l([(0,r.MZ)({type:Boolean})],d.prototype,"disabled",void 0),d=l([(0,n.E)("wui-list-social")],d)},71801:(e,t,i)=>{i.d(t,{Up:()=>u});var o=i(24376),r=i(63450),s=i(6056),a=i(36010),n=i(90184),c=i(78508),l=i(21871),d=i(26742),h=i(27508);async function u(e){r.U.setSocialProvider(e,s.W.state.activeChain),n.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_STARTED",properties:{provider:e}}),"farcaster"===e?await async function(){c.I.push("ConnectingFarcaster");const e=a.a.getAuthConnector();if(e&&!r.U.state.farcasterUrl)try{const{url:t}=await e.provider.getFarcasterUri();r.U.setFarcasterUrl(t,s.W.state.activeChain)}catch(e){c.I.goBack(),l.P.showError(e)}}():await async function(e){c.I.push("ConnectingSocial");const t=a.a.getAuthConnector();let i=null;try{const a=setTimeout(()=>{throw new Error("Social login timed out. Please try again.")},45e3);if(t&&e){if(d.w.isTelegram()||(i=function(){try{return d.w.returnOpenHref(`${o.o.SECURE_SITE_SDK_ORIGIN}/loading`,"popupWindow","width=600,height=800,scrollbars=yes")}catch(e){throw new Error("Could not open social popup")}}()),i)r.U.setSocialWindow(i,s.W.state.activeChain);else if(!d.w.isTelegram())throw new Error("Could not create social popup");const{uri:n}=await t.provider.getSocialRedirectUri({provider:e});if(!n)throw i?.close(),new Error("Could not fetch the social redirect uri");if(i&&(i.location.href=n),d.w.isTelegram()){h.i.setTelegramSocialProvider(e);const t=d.w.formatTelegramSocialLoginUrl(n);d.w.openHref(t,"_top")}clearTimeout(a)}}catch(e){i?.close(),l.P.showError(e?.message)}}(e)}},75805:(e,t,i)=>{i.r(t),i.d(t,{W3mConnectSocialsView:()=>x,W3mConnectingFarcasterView:()=>q,W3mConnectingSocialView:()=>z});var o=i(12618),r=i(25707),s=i(60031),a=i(51454),n=i(42733),c=i(81729),l=(i(6387),i(86074),i(36010)),d=i(78508),h=i(62944),u=i(71655),p=i(71801),g=i(26742),w=(i(68239),i(79835));const b=c.AH`
   :host {
     margin-top: ${({spacing:e})=>e[1]};
   }
@@ -159,7 +312,7 @@
       >
         <w3m-social-login-list tabIdx=${(0,s.J)(a)}></w3m-social-login-list>
       </wui-flex>
-    `}};x.styles=y,v([(0,r.wk)()],x.prototype,"checked",void 0),x=v([(0,c.EM)("w3m-connect-socials-view")],x);var k=i(63450),C=i(31211),$=i(6056),P=i(90184),E=i(27508),R=i(21871),S=i(96396),I=i(68996),O=(i(91885),i(4522),i(41520),i(52835),i(21785)),W=i(39287);const U=c.AH`
+    `}};x.styles=y,v([(0,r.wk)()],x.prototype,"checked",void 0),x=v([(0,c.EM)("w3m-connect-socials-view")],x);var k=i(63450),$=i(31211),C=i(6056),E=i(90184),P=i(27508),R=i(21871),S=i(96396),O=i(68996),W=(i(91885),i(4522),i(41520),i(52835),i(21785)),I=i(39287);const U=c.AH`
   wui-logo {
     width: 80px;
     height: 80px;
@@ -211,7 +364,7 @@
   .capitalize {
     text-transform: capitalize;
   }
-`;var T=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let L=class extends o.WF{constructor(){super(),this.unsubscribe=[],this.socialProvider=k.U.state.socialProvider,this.socialWindow=k.U.state.socialWindow,this.error=!1,this.connecting=!1,this.message="Connect in the provider window",this.remoteFeatures=n.H.state.remoteFeatures,this.address=k.U.state.address,this.connectionsByNamespace=C.x.getConnections($.W.state.activeChain),this.hasMultipleConnections=this.connectionsByNamespace.length>0,this.authConnector=l.a.getAuthConnector(),this.handleSocialConnection=async e=>{if(e.data?.resultUri)if(e.origin===W.o.SECURE_SITE_ORIGIN){window.removeEventListener("message",this.handleSocialConnection,!1);try{if(this.authConnector&&!this.connecting){this.socialWindow&&(this.socialWindow.close(),k.U.setSocialWindow(void 0,$.W.state.activeChain)),this.connecting=!0,this.updateMessage();const t=e.data.resultUri;this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_REQUEST_USER_DATA",properties:{provider:this.socialProvider}}),await C.x.connectExternal({id:this.authConnector.id,type:this.authConnector.type,socialUri:t},this.authConnector.chain),this.socialProvider&&(E.i.setConnectedSocialProvider(this.socialProvider),P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_SUCCESS",properties:{provider:this.socialProvider}}))}}catch(e){this.error=!0,this.updateMessage(),this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:g.w.parseError(e)}})}}else d.I.goBack(),R.P.showError("Untrusted Origin"),this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:"Untrusted Origin"}})},O.R.EmbeddedWalletAbortController.signal.addEventListener("abort",()=>{this.socialWindow&&(this.socialWindow.close(),k.U.setSocialWindow(void 0,$.W.state.activeChain))}),this.unsubscribe.push(k.U.subscribe(e=>{e.socialProvider&&(this.socialProvider=e.socialProvider),e.socialWindow&&(this.socialWindow=e.socialWindow)}),n.H.subscribeKey("remoteFeatures",e=>{this.remoteFeatures=e}),k.U.subscribeKey("address",e=>{const t=this.remoteFeatures?.multiWallet;e&&e!==this.address&&(this.hasMultipleConnections&&t?(d.I.replace("ProfileWallets"),R.P.showSuccess("New Wallet Added")):(S.W.state.open||n.H.state.enableEmbedded)&&S.W.close())})),this.authConnector&&this.connectSocial()}disconnectedCallback(){this.unsubscribe.forEach(e=>e()),window.removeEventListener("message",this.handleSocialConnection,!1),this.socialWindow?.close(),k.U.setSocialWindow(void 0,$.W.state.activeChain)}render(){return o.qy`
+`;var T=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let z=class extends o.WF{constructor(){super(),this.unsubscribe=[],this.socialProvider=k.U.state.socialProvider,this.socialWindow=k.U.state.socialWindow,this.error=!1,this.connecting=!1,this.message="Connect in the provider window",this.remoteFeatures=n.H.state.remoteFeatures,this.address=k.U.state.address,this.connectionsByNamespace=$.x.getConnections(C.W.state.activeChain),this.hasMultipleConnections=this.connectionsByNamespace.length>0,this.authConnector=l.a.getAuthConnector(),this.handleSocialConnection=async e=>{if(e.data?.resultUri)if(e.origin===I.o.SECURE_SITE_ORIGIN){window.removeEventListener("message",this.handleSocialConnection,!1);try{if(this.authConnector&&!this.connecting){this.socialWindow&&(this.socialWindow.close(),k.U.setSocialWindow(void 0,C.W.state.activeChain)),this.connecting=!0,this.updateMessage();const t=e.data.resultUri;this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_REQUEST_USER_DATA",properties:{provider:this.socialProvider}}),await $.x.connectExternal({id:this.authConnector.id,type:this.authConnector.type,socialUri:t},this.authConnector.chain),this.socialProvider&&(P.i.setConnectedSocialProvider(this.socialProvider),E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_SUCCESS",properties:{provider:this.socialProvider}}))}}catch(e){this.error=!0,this.updateMessage(),this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:g.w.parseError(e)}})}}else d.I.goBack(),R.P.showError("Untrusted Origin"),this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:"Untrusted Origin"}})},W.R.EmbeddedWalletAbortController.signal.addEventListener("abort",()=>{this.socialWindow&&(this.socialWindow.close(),k.U.setSocialWindow(void 0,C.W.state.activeChain))}),this.unsubscribe.push(k.U.subscribe(e=>{e.socialProvider&&(this.socialProvider=e.socialProvider),e.socialWindow&&(this.socialWindow=e.socialWindow)}),n.H.subscribeKey("remoteFeatures",e=>{this.remoteFeatures=e}),k.U.subscribeKey("address",e=>{const t=this.remoteFeatures?.multiWallet;e&&e!==this.address&&(this.hasMultipleConnections&&t?(d.I.replace("ProfileWallets"),R.P.showSuccess("New Wallet Added")):(S.W.state.open||n.H.state.enableEmbedded)&&S.W.close())})),this.authConnector&&this.connectSocial()}disconnectedCallback(){this.unsubscribe.forEach(e=>e()),window.removeEventListener("message",this.handleSocialConnection,!1),this.socialWindow?.close(),k.U.setSocialWindow(void 0,C.W.state.activeChain)}render(){return o.qy`
       <wui-flex
         data-error=${(0,s.J)(this.error)}
         flexDirection="column"
@@ -234,7 +387,7 @@
           ></wui-flex
         >
       </wui-flex>
-    `}loaderTemplate(){const e=I.W.state.themeVariables["--w3m-border-radius-master"],t=e?parseInt(e.replace("px",""),10):4;return o.qy`<wui-loading-thumbnail radius=${9*t}></wui-loading-thumbnail>`}connectSocial(){const e=setInterval(()=>{this.socialWindow?.closed&&(this.connecting||"ConnectingSocial"!==d.I.state.view||(this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_CANCELED",properties:{provider:this.socialProvider}}),d.I.goBack()),clearInterval(e))},1e3);window.addEventListener("message",this.handleSocialConnection,!1)}updateMessage(){this.error?this.message="Something went wrong":this.connecting?this.message="Retrieving user data":this.message="Connect in the provider window"}};L.styles=U,T([(0,r.wk)()],L.prototype,"socialProvider",void 0),T([(0,r.wk)()],L.prototype,"socialWindow",void 0),T([(0,r.wk)()],L.prototype,"error",void 0),T([(0,r.wk)()],L.prototype,"connecting",void 0),T([(0,r.wk)()],L.prototype,"message",void 0),T([(0,r.wk)()],L.prototype,"remoteFeatures",void 0),L=T([(0,c.EM)("w3m-connecting-social-view")],L),i(93656),i(20645),i(16858),i(32321);const A=c.AH`
+    `}loaderTemplate(){const e=O.W.state.themeVariables["--w3m-border-radius-master"],t=e?parseInt(e.replace("px",""),10):4;return o.qy`<wui-loading-thumbnail radius=${9*t}></wui-loading-thumbnail>`}connectSocial(){const e=setInterval(()=>{this.socialWindow?.closed&&(this.connecting||"ConnectingSocial"!==d.I.state.view||(this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_CANCELED",properties:{provider:this.socialProvider}}),d.I.goBack()),clearInterval(e))},1e3);window.addEventListener("message",this.handleSocialConnection,!1)}updateMessage(){this.error?this.message="Something went wrong":this.connecting?this.message="Retrieving user data":this.message="Connect in the provider window"}};z.styles=U,T([(0,r.wk)()],z.prototype,"socialProvider",void 0),T([(0,r.wk)()],z.prototype,"socialWindow",void 0),T([(0,r.wk)()],z.prototype,"error",void 0),T([(0,r.wk)()],z.prototype,"connecting",void 0),T([(0,r.wk)()],z.prototype,"message",void 0),T([(0,r.wk)()],z.prototype,"remoteFeatures",void 0),z=T([(0,c.EM)("w3m-connecting-social-view")],z),i(93656),i(20645),i(16858),i(32321);const L=c.AH`
   wui-shimmer {
     width: 100%;
     aspect-ratio: 1 / 1;
@@ -284,7 +437,7 @@
       opacity: 1;
     }
   }
-`;var F=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let j=class extends o.WF{constructor(){super(),this.unsubscribe=[],this.timeout=void 0,this.socialProvider=k.U.state.socialProvider,this.uri=k.U.state.farcasterUrl,this.ready=!1,this.loading=!1,this.remoteFeatures=n.H.state.remoteFeatures,this.authConnector=l.a.getAuthConnector(),this.forceUpdate=()=>{this.requestUpdate()},this.unsubscribe.push(k.U.subscribeKey("farcasterUrl",e=>{e&&(this.uri=e,this.connectFarcaster())}),k.U.subscribeKey("socialProvider",e=>{e&&(this.socialProvider=e)}),n.H.subscribeKey("remoteFeatures",e=>{this.remoteFeatures=e})),window.addEventListener("resize",this.forceUpdate)}disconnectedCallback(){super.disconnectedCallback(),clearTimeout(this.timeout),window.removeEventListener("resize",this.forceUpdate)}render(){return this.onRenderProxy(),o.qy`${this.platformTemplate()}`}platformTemplate(){return g.w.isMobile()?o.qy`${this.mobileTemplate()}`:o.qy`${this.desktopTemplate()}`}desktopTemplate(){return this.loading?o.qy`${this.loadingTemplate()}`:o.qy`${this.qrTemplate()}`}qrTemplate(){return o.qy` <wui-flex
+`;var j=function(e,t,i,o){var r,s=arguments.length,a=s<3?t:null===o?o=Object.getOwnPropertyDescriptor(t,i):o;if("object"==typeof Reflect&&"function"==typeof Reflect.decorate)a=Reflect.decorate(e,t,i,o);else for(var n=e.length-1;n>=0;n--)(r=e[n])&&(a=(s<3?r(a):s>3?r(t,i,a):r(t,i))||a);return s>3&&a&&Object.defineProperty(t,i,a),a};let q=class extends o.WF{constructor(){super(),this.unsubscribe=[],this.timeout=void 0,this.socialProvider=k.U.state.socialProvider,this.uri=k.U.state.farcasterUrl,this.ready=!1,this.loading=!1,this.remoteFeatures=n.H.state.remoteFeatures,this.authConnector=l.a.getAuthConnector(),this.forceUpdate=()=>{this.requestUpdate()},this.unsubscribe.push(k.U.subscribeKey("farcasterUrl",e=>{e&&(this.uri=e,this.connectFarcaster())}),k.U.subscribeKey("socialProvider",e=>{e&&(this.socialProvider=e)}),n.H.subscribeKey("remoteFeatures",e=>{this.remoteFeatures=e})),window.addEventListener("resize",this.forceUpdate)}disconnectedCallback(){super.disconnectedCallback(),clearTimeout(this.timeout),window.removeEventListener("resize",this.forceUpdate)}render(){return this.onRenderProxy(),o.qy`${this.platformTemplate()}`}platformTemplate(){return g.w.isMobile()?o.qy`${this.mobileTemplate()}`:o.qy`${this.desktopTemplate()}`}desktopTemplate(){return this.loading?o.qy`${this.loadingTemplate()}`:o.qy`${this.qrTemplate()}`}qrTemplate(){return o.qy` <wui-flex
       flexDirection="column"
       alignItems="center"
       .padding=${["0","5","5","5"]}
@@ -339,7 +492,7 @@
         ></wui-flex
       >
       ${this.mobileLinkTemplate()}
-    </wui-flex>`}loaderTemplate(){const e=I.W.state.themeVariables["--w3m-border-radius-master"],t=e?parseInt(e.replace("px",""),10):4;return o.qy`<wui-loading-thumbnail radius=${9*t}></wui-loading-thumbnail>`}async connectFarcaster(){if(this.authConnector)try{await(this.authConnector?.provider.connectFarcaster()),this.socialProvider&&(E.i.setConnectedSocialProvider(this.socialProvider),P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_REQUEST_USER_DATA",properties:{provider:this.socialProvider}})),this.loading=!0;const e=C.x.getConnections(this.authConnector.chain).length>0;await C.x.connectExternal(this.authConnector,this.authConnector.chain);const t=this.remoteFeatures?.multiWallet;this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_SUCCESS",properties:{provider:this.socialProvider}}),this.loading=!1,e&&t?(d.I.replace("ProfileWallets"),R.P.showSuccess("New Wallet Added")):S.W.close()}catch(e){this.socialProvider&&P.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:g.w.parseError(e)}}),d.I.goBack(),R.P.showError(e)}}mobileLinkTemplate(){return o.qy`<wui-button
+    </wui-flex>`}loaderTemplate(){const e=O.W.state.themeVariables["--w3m-border-radius-master"],t=e?parseInt(e.replace("px",""),10):4;return o.qy`<wui-loading-thumbnail radius=${9*t}></wui-loading-thumbnail>`}async connectFarcaster(){if(this.authConnector)try{await(this.authConnector?.provider.connectFarcaster()),this.socialProvider&&(P.i.setConnectedSocialProvider(this.socialProvider),E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_REQUEST_USER_DATA",properties:{provider:this.socialProvider}})),this.loading=!0;const e=$.x.getConnections(this.authConnector.chain).length>0;await $.x.connectExternal(this.authConnector,this.authConnector.chain);const t=this.remoteFeatures?.multiWallet;this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_SUCCESS",properties:{provider:this.socialProvider}}),this.loading=!1,e&&t?(d.I.replace("ProfileWallets"),R.P.showSuccess("New Wallet Added")):S.W.close()}catch(e){this.socialProvider&&E.E.sendEvent({type:"track",event:"SOCIAL_LOGIN_ERROR",properties:{provider:this.socialProvider,message:g.w.parseError(e)}}),d.I.goBack(),R.P.showError(e)}}mobileLinkTemplate(){return o.qy`<wui-button
       size="md"
       ?loading=${this.loading}
       ?disabled=${!this.uri||this.loading}
@@ -348,11 +501,11 @@
       Open farcaster</wui-button
     >`}onRenderProxy(){!this.ready&&this.uri&&(this.timeout=setTimeout(()=>{this.ready=!0},200))}qrCodeTemplate(){if(!this.uri||!this.ready)return null;const e=this.getBoundingClientRect().width-40;return o.qy` <wui-qr-code
       size=${e}
-      theme=${I.W.state.themeMode}
+      theme=${O.W.state.themeMode}
       uri=${this.uri}
       ?farcaster=${!0}
       data-testid="wui-qr-code"
-      color=${(0,s.J)(I.W.state.themeVariables["--w3m-qr-color"])}
+      color=${(0,s.J)(O.W.state.themeVariables["--w3m-qr-color"])}
     ></wui-qr-code>`}copyTemplate(){const e=!this.uri||!this.ready;return o.qy`<wui-button
       .disabled=${e}
       @click=${this.onCopyUri}
@@ -362,7 +515,7 @@
     >
       <wui-icon size="sm" color="default" slot="iconRight" name="copy"></wui-icon>
       Copy link
-    </wui-button>`}onCopyUri(){try{this.uri&&(g.w.copyToClopboard(this.uri),R.P.showSuccess("Link copied"))}catch{R.P.showError("Failed to copy")}}};j.styles=A,F([(0,r.wk)()],j.prototype,"socialProvider",void 0),F([(0,r.wk)()],j.prototype,"uri",void 0),F([(0,r.wk)()],j.prototype,"ready",void 0),F([(0,r.wk)()],j.prototype,"loading",void 0),F([(0,r.wk)()],j.prototype,"remoteFeatures",void 0),j=F([(0,c.EM)("w3m-connecting-farcaster-view")],j)},86074:(e,t,i)=>{var o=i(12618),r=i(25707),s=i(51454),a=i(42733),n=i(81729),c=i(60031),l=i(97832),d=(i(91226),i(65548),i(85886)),h=i(15181);const u=i(10982).AH`
+    </wui-button>`}onCopyUri(){try{this.uri&&(g.w.copyToClopboard(this.uri),R.P.showSuccess("Link copied"))}catch{R.P.showError("Failed to copy")}}};q.styles=L,j([(0,r.wk)()],q.prototype,"socialProvider",void 0),j([(0,r.wk)()],q.prototype,"uri",void 0),j([(0,r.wk)()],q.prototype,"ready",void 0),j([(0,r.wk)()],q.prototype,"loading",void 0),j([(0,r.wk)()],q.prototype,"remoteFeatures",void 0),q=j([(0,c.EM)("w3m-connecting-farcaster-view")],q)},86074:(e,t,i)=>{var o=i(12618),r=i(25707),s=i(51454),a=i(42733),n=i(81729),c=i(60031),l=i(7610),d=(i(91226),i(65548),i(85886)),h=i(15181);const u=i(10982).AH`
   label {
     display: inline-flex;
     align-items: center;

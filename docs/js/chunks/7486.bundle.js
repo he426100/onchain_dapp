@@ -34,7 +34,7 @@
           </wui-flex>
         </wui-flex>
       </wui-flex>
-    `}async listenForDeviceApproval(){if(this.authConnector)try{await this.authConnector.provider.connectDevice(),a.E.sendEvent({type:"track",event:"DEVICE_REGISTERED_FOR_EMAIL"}),a.E.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_SENT"}),s.I.replace("EmailVerifyOtp",{email:this.email})}catch(e){s.I.goBack()}}async onResendCode(){try{if(!this.loading){if(!this.authConnector||!this.email)throw new Error("w3m-email-login-widget: Unable to resend email");this.loading=!0,await this.authConnector.provider.connectEmail({email:this.email}),this.listenForDeviceApproval(),c.P.showSuccess("Code email resent")}}catch(e){c.P.showError(e)}finally{this.loading=!1}}};v.styles=y,g([(0,w.wk)()],v.prototype,"loading",void 0),v=g([(0,d.EM)("w3m-email-verify-device-view")],v);var b=i(97832);i(93656),i(41052);const E=m.AH`
+    `}async listenForDeviceApproval(){if(this.authConnector)try{await this.authConnector.provider.connectDevice(),a.E.sendEvent({type:"track",event:"DEVICE_REGISTERED_FOR_EMAIL"}),a.E.sendEvent({type:"track",event:"EMAIL_VERIFICATION_CODE_SENT"}),s.I.replace("EmailVerifyOtp",{email:this.email})}catch(e){s.I.goBack()}}async onResendCode(){try{if(!this.loading){if(!this.authConnector||!this.email)throw new Error("w3m-email-login-widget: Unable to resend email");this.loading=!0,await this.authConnector.provider.connectEmail({email:this.email}),this.listenForDeviceApproval(),c.P.showSuccess("Code email resent")}}catch(e){c.P.showError(e)}finally{this.loading=!1}}};v.styles=y,g([(0,w.wk)()],v.prototype,"loading",void 0),v=g([(0,d.EM)("w3m-email-verify-device-view")],v);var b=i(7610);i(93656),i(41052);const E=m.AH`
   wui-email-input {
     width: 100%;
   }
@@ -105,7 +105,7 @@
         tabIdx=${(0,o.J)(this.tabIdx)}
       ></wui-input-text>
       ${this.templateError()}
-    `}templateError(){return this.errorMessage?n.qy`<wui-text variant="sm-regular" color="error">${this.errorMessage}</wui-text>`:null}};p.styles=[a.W5,l],c([(0,r.MZ)()],p.prototype,"errorMessage",void 0),c([(0,r.MZ)({type:Boolean})],p.prototype,"disabled",void 0),c([(0,r.MZ)()],p.prototype,"value",void 0),c([(0,r.MZ)()],p.prototype,"tabIdx",void 0),p=c([(0,s.E)("wui-email-input")],p)},82673:(e,t,i)=>{var n=i(12618),r=i(25707),o=i(60031),a=i(97832),s=(i(91226),i(65548),i(85886)),l=i(15181);const c=i(10982).AH`
+    `}templateError(){return this.errorMessage?n.qy`<wui-text variant="sm-regular" color="error">${this.errorMessage}</wui-text>`:null}};p.styles=[a.W5,l],c([(0,r.MZ)()],p.prototype,"errorMessage",void 0),c([(0,r.MZ)({type:Boolean})],p.prototype,"disabled",void 0),c([(0,r.MZ)()],p.prototype,"value",void 0),c([(0,r.MZ)()],p.prototype,"tabIdx",void 0),p=c([(0,s.E)("wui-email-input")],p)},82673:(e,t,i)=>{var n=i(12618),r=i(25707),o=i(60031),a=i(7610),s=(i(91226),i(65548),i(85886)),l=i(15181);const c=i(10982).AH`
   :host {
     position: relative;
     width: 100%;

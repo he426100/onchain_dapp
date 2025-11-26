@@ -9,39 +9,257 @@
     <script src="bundle.js"></script>
     <!-- <base href="/onchain_dapp/"> -->
     <link rel="icon" type="image/x-icon" href="../../statics/favicon.ico" />
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+            max-width: 1000px;
+            margin: 0 auto;
+            min-height: 100vh;
+        }
+
+        .container {
+            background: white;
+            border-radius: 16px;
+            padding: 40px;
+            box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+        }
+
+        h1 {
+            color: #1f2937;
+            margin: 0 0 10px 0;
+            font-size: 2.5em;
+        }
+
+        .subtitle {
+            color: #6b7280;
+            font-size: 1.1em;
+            line-height: 1.6;
+            margin-bottom: 40px;
+        }
+
+        .section {
+            margin-bottom: 35px;
+        }
+
+        h5 {
+            color: #374151;
+            font-size: 1.3em;
+            margin: 25px 0 15px 0;
+            padding-bottom: 8px;
+            border-bottom: 2px solid #e5e7eb;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        button {
+            width: 100%;
+            padding: 14px 20px;
+            margin: 8px 0;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 15px;
+            font-weight: 500;
+            background: white;
+            color: #374151;
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        button:hover {
+            border-color: #667eea;
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+            background: #f9fafb;
+        }
+
+        button.new {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            font-weight: 600;
+            position: relative;
+            overflow: hidden;
+        }
+
+        button.new:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+        }
+
+        button.new::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+            transition: left 0.5s;
+        }
+
+        button.new:hover::before {
+            left: 100%;
+        }
+
+        .badge {
+            display: inline-block;
+            background: #10b981;
+            color: white;
+            padding: 4px 10px;
+            border-radius: 12px;
+            font-size: 12px;
+            font-weight: 600;
+        }
+
+        .badge.recommended {
+            background: #f59e0b;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.7; }
+        }
+
+        .icon {
+            font-size: 20px;
+        }
+
+        .arrow {
+            opacity: 0.5;
+            transition: all 0.2s;
+        }
+
+        button:hover .arrow {
+            opacity: 1;
+            transform: translateX(4px);
+        }
+    </style>
 </head>
 
 <body>
-    <h1>Hello!</h1>
-    <h3>These pages provide examples of how to send requests to the OnChain wallet. Some buttons may not work as
-        expected, and certain requests may require specific conditions to be met. Please refer to the code for each page
-        to understand how to interact with the wallet properly.</h3>
-        
-    <h5>Ethereum</h5>
-    <button onclick="window.location.href='pages/ethereum/eip1193_eth'">EIP-1193</button><br><br>
-    <button onclick="window.location.href='pages/ethereum/eip6963_eth'">EIP-6963</button><br><br>
-    <button onclick="window.location.href='pages/ethereum/ws_eth'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/ethereum/wc_eth'">WalletConnect</button><br><br>
+    <div class="container">
+        <h1>🚀 OnChain DAPP Examples</h1>
+        <p class="subtitle">
+            Multi-chain wallet connection testing tool. These pages provide examples of how to send requests to the OnChain wallet.
+            Some buttons may require specific conditions to be met. Please refer to the code for each page to understand how to interact with the wallet properly.
+        </p>
 
-    <h5>Tron</h5>
-    <button onclick="window.location.href='pages/tron/tip_tron'">TIP-1193</button><br><br>
-    <button onclick="window.location.href='pages/tron/ws_tron'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/tron/wc_tron'">WalletConnect</button><br><br>
-    <h5>Bitcoin</h5>
-    <button onclick="window.location.href='pages/bitcoin/ws_bitcoin'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/bitcoin/wc_bitcoin'">WalletConnect</button><br><br>
-    <h5>Bitcoin Cash</h5>
-    <button onclick="window.location.href='pages/bch/ws_bch'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/bch/wc_bch'">WalletConnect</button><br><br>
-    <h5>Solana</h5>
-    <button onclick="window.location.href='pages/solana/ws_solana'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/solana/wc_solana'">WalletConnect</button><br><br>
-    <h5>XRPL</h5>
-    <button onclick="window.location.href='pages/ripple/ws_ripple'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/ripple/wc_ripple'">WalletConnect</button><br><br>
-    <h5>Filecoin</h5>
-    <button onclick="window.location.href='pages/filecoin/ws_filecoin'">Wallet Standard</button><br><br>
-    <button onclick="window.location.href='pages/filecoin/wc_filecoin'">WalletConnect</button><br><br>
-    <button onclick="window.location.href='pages/filecoin/adapter_filecoin'">Wallet Adapters</button><br><br>
+        <div class="section">
+            <h5><span class="icon">⬥</span> Ethereum</h5>
+            <button class="new" onclick="window.location.href='pages/ethereum/wagmi_eth'">
+                <span>✨ Wagmi 标准实现 (推荐) <span class="badge recommended">NEW</span></span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/ethereum/eip1193_eth'">
+                <span>EIP-1193 (传统实现)</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/ethereum/eip6963_eth'">
+                <span>EIP-6963 (多钱包发现)</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/ethereum/ws_eth'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/ethereum/wc_eth'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">🔴</span> Tron</h5>
+            <button onclick="window.location.href='pages/tron/tip_tron'">
+                <span>TIP-1193</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/tron/ws_tron'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/tron/wc_tron'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">₿</span> Bitcoin</h5>
+            <button onclick="window.location.href='pages/bitcoin/ws_bitcoin'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/bitcoin/wc_bitcoin'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">💵</span> Bitcoin Cash</h5>
+            <button onclick="window.location.href='pages/bch/ws_bch'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/bch/wc_bch'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">◎</span> Solana</h5>
+            <button onclick="window.location.href='pages/solana/ws_solana'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/solana/wc_solana'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">✕</span> XRPL</h5>
+            <button onclick="window.location.href='pages/ripple/ws_ripple'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/ripple/wc_ripple'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div class="section">
+            <h5><span class="icon">🗄️</span> Filecoin</h5>
+            <button onclick="window.location.href='pages/filecoin/ws_filecoin'">
+                <span>Wallet Standard</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/filecoin/wc_filecoin'">
+                <span>WalletConnect</span>
+                <span class="arrow">→</span>
+            </button>
+            <button onclick="window.location.href='pages/filecoin/adapter_filecoin'">
+                <span>Wallet Adapters</span>
+                <span class="arrow">→</span>
+            </button>
+        </div>
+
+        <div style="margin-top: 40px; padding-top: 20px; border-top: 2px solid #e5e7eb; color: #6b7280; text-align: center; font-size: 14px;">
+            <p>💡 <strong>Ethereum Wagmi 实现</strong>完全对标 Scaffold-ETH-2 和 RainbowKit 最佳实践</p>
+            <p style="margin-top: 10px;">
+                <a href="https://github.com/mrtnetwork/onchain_dapp" target="_blank" style="color: #667eea; text-decoration: none;">GitHub</a> ·
+                <a href=".claude/plan/ethereum-dapp-审查报告.md" target="_blank" style="color: #667eea; text-decoration: none;">审查报告</a>
+            </p>
+        </div>
+    </div>
 </body>
 </html>

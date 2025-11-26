@@ -1,0 +1,2 @@
+"use strict";(self.webpackChunkonchain_dapp_example=self.webpackChunkonchain_dapp_example||[]).push([[3456],{12305:(e,n,a)=>{a.d(n,{l:()=>p});var i=a(92864),l=a(66569);function p(e){const{key:n="public",name:a="Public Client"}=e;return(0,i.U)({...e,key:n,name:a,type:"publicClient"}).extend(l.$)}},93456:(e,n,a)=>{a.d(n,{createPublicClient:()=>i.l,defineChain:()=>p.x,http:()=>l.L});var i=a(12305),l=a(8676),p=a(54676)}}]);
+//# sourceMappingURL=3456.bundle.js.map

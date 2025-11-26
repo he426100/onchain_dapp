@@ -16,11 +16,29 @@ import { mainnet, arbitrum } from '@reown/appkit/networks'
 import UniversalProvider from '@walletconnect/universal-provider';
 import ecc from '@bitcoinerlab/secp256k1';
 import bitcoin from 'bitcoinjs-lib';
+
+// Wagmi imports
+import * as wagmiCore from '@wagmi/core';
+import * as wagmiChains from '@wagmi/core/chains';
+import * as wagmiConnectors from '@wagmi/connectors';
+import { parseEther, formatEther } from 'viem';
+
 window.Buffer = Buffer;
 window.mainnet = mainnet;
 window.ecc = ecc;
 bitcoin.initEccLib(ecc);
 window.bitcoin = bitcoin;
+
+// Expose Wagmi to window
+window.wagmi = {
+    core: wagmiCore,
+    chains: wagmiChains,
+    connectors: wagmiConnectors,
+};
+window.viem = {
+    parseEther,
+    formatEther,
+};
 
 window.XRPL = {
     Client, decode

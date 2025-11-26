@@ -525,8 +525,8 @@ async function addEthereumChain() {
 }
 
 /**
- * Sign TypedData V3 - eth_signTypedData (无版本后缀)
- * EIP-1193 标准使用的版本
+ * Sign TypedData V3 - 使用 Wagmi 标准实现
+ * 对标 RainbowKit 的实现方式
  */
 async function signTypedDataV3() {
   try {
@@ -536,66 +536,46 @@ async function signTypedDataV3() {
       return;
     }
 
-    // V3 格式的 TypedData (与 EIP-1193 对应)
-    const typedDataV3 = {
-      types: {
-        EIP712Domain: [
-          { name: 'name', type: 'string' },
-          { name: 'version', type: 'string' },
-          { name: 'chainId', type: 'uint256' },
-          { name: 'verifyingContract', type: 'address' },
-        ],
-        Person: [
-          { name: 'name', type: 'string' },
-          { name: 'wallet', type: 'address' },
-        ],
-        Mail: [
-          { name: 'from', type: 'Person' },
-          { name: 'to', type: 'Person' },
-          { name: 'contents', type: 'string' },
-        ],
-      },
-      primaryType: 'Mail',
-      domain: {
-        name: 'Ether Mail',
-        version: '1',
-        chainId: account.chainId,
-        verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
-      },
-      message: {
-        from: {
-          name: 'Cow',
-          wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
-        },
-        to: {
-          name: 'Bob',
-          wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
-        },
-        contents: 'Hello, Bob!',
-      },
-    };
-
-    const loadingId = notification.loading('等待 TypedData V3 签名确认...');
+    const loadingId = notification.loading('等待 TypedData 签名确认...');
 
     try {
-      // 获取 WalletClient
-      const { getWalletClient } = window.wagmi.core;
-      const walletClient = await getWalletClient(wagmiConfig);
-
-      if (!walletClient) {
-        throw new Error('无法获取钱包客户端');
-      }
-
-      // 使用 eth_signTypedData (V3, 无版本后缀)
-      // 参数顺序: [data, address] (与 EIP-1193 一致)
-      const signature = await walletClient.request({
-        method: 'eth_signTypedData',
-        params: [JSON.stringify(typedDataV3), account.address],
+      // 使用 wagmi signTypedData (与 RainbowKit 一致)
+      // 不包含 EIP712Domain 在 types 中
+      const signature = await wagmiSignTypedData(wagmiConfig, {
+        domain: {
+          name: 'Ether Mail',
+          version: '1',
+          chainId: account.chainId,
+          verifyingContract: '0xCcCCccccCCCCcCCCCCCcCcCccCcCCCcCcccccccC',
+        },
+        message: {
+          contents: 'Hello, Bob!',
+          from: {
+            name: 'Cow',
+            wallet: '0xCD2a3d9F938E13CD947Ec05AbC7FE734Df8DD826',
+          },
+          to: {
+            name: 'Bob',
+            wallet: '0xbBbBBBBbbBBBbbbBbbBbbbbBBbBbbbbBbBbbBBbB',
+          },
+        },
+        primaryType: 'Mail',
+        types: {
+          Mail: [
+            { name: 'from', type: 'Person' },
+            { name: 'to', type: 'Person' },
+            { name: 'contents', type: 'string' },
+          ],
+          Person: [
+            { name: 'name', type: 'string' },
+            { name: 'wallet', type: 'address' },
+          ],
+        },
       });
 
       notification.remove(loadingId);
-      notification.success('TypedData V3 签名成功!');
-      console.log('TypedData V3 signature:', signature);
+      notification.success('TypedData 签名成功!');
+      console.log('TypedData signature:', signature);
 
       return signature;
     } catch (error) {
@@ -603,7 +583,7 @@ async function signTypedDataV3() {
       throw error;
     }
   } catch (error) {
-    console.error('SignTypedData V3 error:', error);
+    console.error('SignTypedData error:', error);
     notification.error(parseError(error));
     throw error;
   }

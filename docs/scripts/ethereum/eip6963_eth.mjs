@@ -1,14 +1,119 @@
-import { getEIP6963Wallet } from '../utils/ws.mjs'
+import { getAllEIP6963Wallets } from '../utils/ws.mjs'
 import * as utils from '../utils/utils.mjs';
 import { ethereum } from '../constants/constants.mjs'
+
 const network = ethereum.eip155WsTestnetNetwrk;
+let selectedWallet = null;  // 存储用户选择的钱包
+
+/**
+ * 发现并显示所有可用的 EIP-6963 钱包
+ * 用户可以选择要连接的钱包
+ */
+async function discoverWallets() {
+  const wallets = await getAllEIP6963Wallets();
+
+  if (wallets.length === 0) {
+    throw new Error("未发现任何 EIP-6963 钱包。请安装 MetaMask、Rainbow 或其他支持 EIP-6963 的钱包。");
+  }
+
+  // 在控制台显示发现的钱包
+  console.log("=== 发现的 EIP-6963 钱包 ===");
+  wallets.forEach((wallet, index) => {
+    console.log(`${index + 1}. ${wallet.info.name} (${wallet.info.rdns})`);
+    console.log(`   UUID: ${wallet.info.uuid}`);
+    console.log(`   Icon: ${wallet.info.icon.substring(0, 50)}...`);
+  });
+
+  // 更新页面显示钱包列表
+  updateWalletList(wallets);
+
+  return wallets;
+}
+
+/**
+ * 更新页面上的钱包列表显示
+ */
+function updateWalletList(wallets) {
+  const container = document.getElementById('wallet-list');
+  if (!container) return;
+
+  container.innerHTML = '<h3>可用钱包:</h3>';
+
+  wallets.forEach((wallet, index) => {
+    const button = document.createElement('button');
+    button.className = 'wallet-item';
+    button.onclick = () => selectWallet(wallet);
+
+    button.innerHTML = `
+      <img src="${wallet.info.icon}" alt="${wallet.info.name}" style="width: 32px; height: 32px; margin-right: 10px;">
+      <span>${wallet.info.name}</span>
+    `;
+
+    container.appendChild(button);
+  });
+}
+
+/**
+ * 选择钱包
+ */
+async function selectWallet(wallet) {
+  selectedWallet = wallet;
+  console.log('已选择钱包:', wallet.info.name);
+
+  // 标记选中状态
+  const container = document.getElementById('wallet-list');
+  if (container) {
+    const buttons = container.querySelectorAll('.wallet-item');
+    buttons.forEach(btn => btn.classList.remove('selected'));
+    event.currentTarget.classList.add('selected');
+  }
+
+  // 更新连接状态显示
+  const status = document.getElementById('wallet-status');
+  if (status) {
+    status.innerHTML = `已选择: ${wallet.info.name}`;
+  }
+
+  alert(`已选择钱包: ${wallet.info.name}\n点击 "Connect" 按钮连接`);
+}
+
+/**
+ * 连接到选中的钱包
+ */
 async function connect() {
-  const provider = await getEIP6963Wallet();
+  // 如果没有选择钱包,先发现钱包
+  if (!selectedWallet) {
+    const wallets = await discoverWallets();
+
+    if (wallets.length === 1) {
+      // 只有一个钱包,自动选择
+      selectedWallet = wallets[0];
+    } else {
+      // 多个钱包,提示用户选择
+      throw new Error(`发现 ${wallets.length} 个钱包。请先选择一个钱包,然后点击 "Connect"。`);
+    }
+  }
+
+  const provider = selectedWallet.provider;
   const params = [network];
   const accounts = await provider.request({ method: "eth_requestAccounts", params });
+
   if (accounts.length === 0) {
     throw new Error(`No approved accounts found for network "${network} (Ethereum Sepolia testnet)". Please connect an account in your wallet.`);
   }
+
+  // 更新连接状态
+  const status = document.getElementById('wallet-status');
+  if (status) {
+    status.innerHTML = `
+      已连接: ${selectedWallet.info.name}<br>
+      地址: ${accounts[0].substring(0, 6)}...${accounts[0].substring(38)}
+    `;
+  }
+
+  console.log('已连接到钱包:', selectedWallet.info.name);
+  console.log('账户地址:', accounts[0]);
+
   return { provider, accounts };
 }
 
@@ -155,6 +260,7 @@ async function disconnect() {
 
 const onChain = {
   ethereum: {
+    discoverWallets: discoverWallets,
     connect: connect,
     personalSign: personalSign,
     ethSign: ethSign,

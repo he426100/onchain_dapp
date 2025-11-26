@@ -1,6 +1,6 @@
 import { createCompleter } from '../utils/utils.mjs';
 let _walletStandard;
-let _eip6963Wallet;
+let _eip6963Wallets = [];  // 存储所有发现的 EIP-6963 钱包
 
 
 async function getWallet() {
@@ -42,24 +42,50 @@ function getEIPWallet() {
 }
 
 
+/**
+ * 获取所有 EIP-6963 钱包
+ * 符合 EIP-6963 标准的钱包发现机制
+ * 参考: https://eips.ethereum.org/EIPS/eip-6963
+ */
+async function getAllEIP6963Wallets() {
+    return new Promise((resolve) => {
+        // 监听钱包公告事件
+        function onAnnouncement(event) {
+            if (event.detail && event.detail.info && event.detail.provider) {
+                // 基于 UUID 去重
+                const exists = _eip6963Wallets.some(w => w.info.uuid === event.detail.info.uuid);
+                if (!exists) {
+                    _eip6963Wallets.push(event.detail);
+                    console.log('Discovered EIP-6963 wallet:', event.detail.info.name);
+                }
+            }
+        }
+
+        window.addEventListener("eip6963:announceProvider", onAnnouncement);
+
+        // 触发钱包发现请求
+        const requestEvent = new CustomEvent('eip6963:requestProvider');
+        window.dispatchEvent(requestEvent);
+
+        // 等待一段时间收集所有钱包响应
+        setTimeout(() => {
+            window.removeEventListener("eip6963:announceProvider", onAnnouncement);
+            resolve(_eip6963Wallets);
+        }, 100);
+    });
+}
+
+/**
+ * 获取单个 EIP-6963 钱包 (向后兼容)
+ * 如果有多个钱包,返回第一个
+ */
 async function getEIP6963Wallet() {
-    if (_eip6963Wallet) return _eip6963Wallet;
-    const completer = createCompleter();
-    window.addEventListener("eip6963:announceProvider", function s(e) {
-        if (e.detail !== undefined && e.detail?.provider !== undefined && e.detail.provider) {
-            completer.resolve(e.detail.provider)
-        }
-    });
-    const event = new CustomEvent('eip6963:requestProvider', {
-        detail: {
-        }
-    });
-    window.dispatchEvent(event);
-    _eip6963Wallet = await completer.promise;
-
-    return _eip6963Wallet;
-
+    const wallets = await getAllEIP6963Wallets();
+    if (wallets.length === 0) {
+        throw new Error("No EIP-6963 wallet found. Please install a compatible wallet.");
+    }
+    return wallets[0].provider;
 }
 
 
-export { getWallet, getTipWallet, getEIPWallet, getEIP6963Wallet };
+export { getWallet, getTipWallet, getEIPWallet, getEIP6963Wallet, getAllEIP6963Wallets };

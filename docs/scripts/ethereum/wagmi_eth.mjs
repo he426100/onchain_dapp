@@ -23,6 +23,7 @@ const { parseEther } = window.viem;
 import { wagmiConfig, getBlockExplorerUrl, chains } from './wagmi-config.mjs';
 import { stateManager } from './state-manager.mjs';
 import { notification, parseError, createTxNotification } from '../utils/notifications.mjs';
+import { showSelectDialog, showConfirmDialog, showInputDialog } from '../utils/dialog.mjs';
 
 /**
  * 连接钱包 - Wagmi 标准实现
@@ -38,10 +39,12 @@ async function connect() {
 
     // 如果已连接，询问是否重新连接
     if (account.isConnected) {
-      const reconnect = confirm(
+      const reconnect = await showConfirmDialog(
         `当前已连接到:\n${account.address}\n\n` +
         `连接器: ${account.connector?.name}\n\n` +
-        `是否要断开并重新连接？`
+        `是否要断开并重新连接？`,
+        '重新连接',
+        '保持连接'
       );
 
       if (!reconnect) {
@@ -69,25 +72,16 @@ async function connect() {
     }
 
     // 显示可用的钱包连接器供用户选择
-    const connectorList = connectors
-      .map((connector, index) => `${index + 1}. ${connector.name}`)
-      .join('\n');
+    const options = connectors.map((connector, index) => ({
+      label: connector.name,
+      value: index
+    }));
 
-    const choice = prompt(`选择要连接的钱包:\n${connectorList}\n\n请输入序号 (直接回车默认选择第1个):`);
+    const selectedIndex = await showSelectDialog('选择要连接的钱包', options);
 
-    if (choice === null) {
+    if (selectedIndex === null) {
       notification.info('已取消连接');
       return;
-    }
-
-    // 默认选择第一个
-    let selectedIndex = 0;
-    if (choice && choice.trim() !== '') {
-      selectedIndex = parseInt(choice) - 1;
-      if (selectedIndex < 0 || selectedIndex >= connectors.length) {
-        notification.error('无效的选择，使用默认钱包');
-        selectedIndex = 0;
-      }
     }
 
     const selectedConnector = connectors[selectedIndex];
@@ -157,7 +151,7 @@ async function personalSign() {
       return;
     }
 
-    const message = prompt('请输入要签名的消息:', '这是一条测试消息');
+    const message = await showInputDialog('请输入要签名的消息:', '这是一条测试消息', '输入消息内容');
     if (!message) return;
 
     const loadingId = notification.loading('等待签名确认...');
@@ -260,10 +254,10 @@ async function sendTransaction() {
       return;
     }
 
-    const recipient = prompt('请输入接收地址:', '0x372cC9e4Fa8E834237e106235e26A2fb7E9082D2');
+    const recipient = await showInputDialog('请输入接收地址:', '0x372cC9e4Fa8E834237e106235e26A2fb7E9082D2', '0x...');
     if (!recipient) return;
 
-    const amount = prompt('请输入金额 (ETH):', '0.001');
+    const amount = await showInputDialog('请输入金额 (ETH):', '0.001', '0.001');
     if (!amount) return;
 
     // 1. 等待用户确认
@@ -330,16 +324,16 @@ async function switchNetwork() {
     }
 
     // 显示可用网络
-    const networkList = chains
-      .filter(chain => chain.id !== account.chainId)
-      .map((chain, index) => `${index + 1}. ${chain.name} (Chain ID: ${chain.id})`)
-      .join('\n');
+    const availableChains = chains.filter(chain => chain.id !== account.chainId);
+    const options = availableChains.map((chain, index) => ({
+      label: `${chain.name} (Chain ID: ${chain.id})`,
+      value: index
+    }));
 
-    const choice = prompt(`选择要切换的网络:\n${networkList}\n\n请输入序号:`);
-    if (!choice) return;
+    const selectedIndex = await showSelectDialog('选择要切换的网络', options);
+    if (selectedIndex === null) return;
 
-    const index = parseInt(choice) - 1;
-    const targetChain = chains.filter(chain => chain.id !== account.chainId)[index];
+    const targetChain = availableChains[selectedIndex];
 
     if (!targetChain) {
       notification.error('无效的网络选择');
@@ -469,20 +463,20 @@ async function addEthereumChain() {
     }
 
     // 提示用户输入网络参数
-    const chainIdInput = prompt('请输入 Chain ID (十进制):', '11155111');
+    const chainIdInput = await showInputDialog('请输入 Chain ID (十进制):', '11155111', '如: 11155111');
     if (!chainIdInput) return;
     const chainId = parseInt(chainIdInput);
 
-    const chainName = prompt('请输入网络名称:', 'Sepolia Test Network');
+    const chainName = await showInputDialog('请输入网络名称:', 'Sepolia Test Network', '如: Sepolia Test Network');
     if (!chainName) return;
 
-    const rpcUrl = prompt('请输入 RPC URL:', 'https://rpc.sepolia.org');
+    const rpcUrl = await showInputDialog('请输入 RPC URL:', 'https://rpc.sepolia.org', 'https://...');
     if (!rpcUrl) return;
 
-    const currencySymbol = prompt('请输入货币符号:', 'ETH');
+    const currencySymbol = await showInputDialog('请输入货币符号:', 'ETH', '如: ETH');
     if (!currencySymbol) return;
 
-    const explorerUrl = prompt('请输入区块浏览器 URL (可选):', 'https://sepolia.etherscan.io');
+    const explorerUrl = await showInputDialog('请输入区块浏览器 URL (可选):', 'https://sepolia.etherscan.io', 'https://... (可选)');
 
     // 获取 WalletClient
     const { getWalletClient } = window.wagmi.core;
@@ -672,13 +666,12 @@ async function subscribe() {
     }
 
     // 选择订阅类型
-    const subscribeOptions =
-      '选择订阅类型:\n' +
-      '1. 新区块 (New Blocks)\n' +
-      '2. 区块号 (Block Number)\n\n' +
-      '请输入序号:';
+    const subscribeOptions = [
+      { label: '新区块 (New Blocks)', value: '1' },
+      { label: '区块号 (Block Number)', value: '2' }
+    ];
 
-    const choice = prompt(subscribeOptions);
+    const choice = await showSelectDialog('选择订阅类型', subscribeOptions);
     if (!choice) return;
 
     const { getPublicClient } = window.wagmi.core;

@@ -1,0 +1,150 @@
+/**
+ * 公共样式文件 - 从 index.html 提取
+ * 用于所有 docs/pages 页面
+ */
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
+    max-width: 1000px;
+    margin: 0 auto;
+    min-height: 100vh;
+    padding: 40px 20px;
+    background: #f5f5f5;
+}
+
+.container {
+    background: white;
+    border-radius: 16px;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0,0,0,0.3);
+}
+
+h1 {
+    color: #1f2937;
+    margin: 0 0 10px 0;
+    font-size: 2.5em;
+}
+
+h2 {
+    color: #374151;
+    font-size: 1.8em;
+    margin: 30px 0 20px 0;
+}
+
+.subtitle {
+    color: #6b7280;
+    font-size: 1.1em;
+    line-height: 1.6;
+    margin-bottom: 40px;
+}
+
+.section {
+    margin-bottom: 35px;
+}
+
+h5 {
+    color: #374151;
+    font-size: 1.3em;
+    margin: 25px 0 15px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e5e7eb;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+button {
+    width: 100%;
+    max-width: 600px;
+    padding: 14px 20px;
+    margin: 8px 0;
+    border: 2px solid #e5e7eb;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: 500;
+    background: white;
+    color: #374151;
+    transition: all 0.2s;
+    display: block;
+    text-align: left;
+}
+
+/* 隐藏按钮后的br标签造成的额外间距 */
+button + br {
+    display: none;
+}
+
+br + br {
+    display: none;
+}
+
+button:hover {
+    border-color: #667eea;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.2);
+    background: #f9fafb;
+}
+
+button.new {
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border: none;
+    font-weight: 600;
+    position: relative;
+    overflow: hidden;
+}
+
+button.new:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 20px rgba(102, 126, 234, 0.4);
+}
+
+button.new::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.3), transparent);
+    transition: left 0.5s;
+}
+
+button.new:hover::before {
+    left: 100%;
+}
+
+.badge {
+    display: inline-block;
+    background: #10b981;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: 600;
+}
+
+.badge.recommended {
+    background: #f59e0b;
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.7; }
+}
+
+.icon {
+    font-size: 20px;
+}
+
+.arrow {
+    opacity: 0.5;
+    transition: all 0.2s;
+}
+
+button:hover .arrow {
+    opacity: 1;
+    transform: translateX(4px);
+}

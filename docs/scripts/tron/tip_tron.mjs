@@ -2,6 +2,8 @@ import { getTipWallet } from '../utils/ws.mjs'
 import { tron } from '../constants/constants.mjs'
 import * as utils from '../utils/utils.mjs';
 import { broadcastTx, buildTransfer } from "./tron_utils.mjs"
+import { showInputDialog } from '../utils/dialog.mjs';
+import { notification } from '../utils/notifications.mjs';
 const network = tron.tronWsShastaNetwork;
 async function connect() {
   const provider = getTipWallet();
@@ -16,7 +18,7 @@ async function connect() {
 
 async function signMessage() {
   const { accounts, provider } = await connect();
-  const message = prompt("Please enter a message you want to sign: ", "is a test message.");
+  const message = await showInputDialog("Please enter a message you want to sign:", "is a test message.", "Message to sign");
 
   const params = {
     'message': message || "is a test message.",
@@ -34,7 +36,7 @@ async function signMessage() {
 
 async function transfer() {
   const { accounts, provider } = await connect();
-  const input = prompt("Please enter a valid destionation address: ", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL");
+  const input = await showInputDialog("Please enter a valid destination address:", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL", "Tron address");
   const transaction = await buildTransfer({ account: accounts[0], input });
   const params = [transaction]
   await utils.runMethod({
@@ -47,7 +49,7 @@ async function transfer() {
 }
 async function signAndSendTransfer() {
   const { accounts, provider } = await connect();
-  const input = prompt("Please enter a valid destionation address: ", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL");
+  const input = await showInputDialog("Please enter a valid destination address:", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL", "Tron address");
   const transaction = await buildTransfer({ account: accounts[0], input })
   const params = [transaction]
   const signatures = await utils.runMethod({
@@ -59,13 +61,13 @@ async function signAndSendTransfer() {
   });
   transaction.signature = signatures;
   const { txid } = await broadcastTx(transaction);
-  alert(`TxID: ${txid}`);
+  notification.success(`TxID: ${txid}`);
 }
 
 
 async function transferUsingTronWeb() {
   const { accounts, provider } = await connect();
-  const input = prompt("Please enter a valid destionation address: ", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL");
+  const input = await showInputDialog("Please enter a valid destination address:", "TNPeeaaFB7K9cmo4uQpcU32zGK8G1NYqeL", "Tron address");
   const transaction = await buildTransfer({ account: accounts[0], input })
   const signedTransaction = await utils.runMethod({
     method: "tron_signTransaction",
@@ -76,12 +78,12 @@ async function transferUsingTronWeb() {
     }
   })
   const { txid } = await broadcastTx(signedTransaction);
-  alert(`TxID: ${txid}`);
+  notification.success(`TxID: ${txid}`);
 }
 
 async function signMessageUsingTronWeb() {
   const { provider } = await connect();
-  const message = prompt("Please enter a message you want to sign: ", "is a test message.");
+  const message = await showInputDialog("Please enter a message you want to sign:", "is a test message.", "Message to sign");
 
   await utils.runMethod({
     method: "tron_signMessage",

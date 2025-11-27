@@ -1,6 +1,8 @@
 import { getAllEIP6963Wallets } from '../utils/ws.mjs'
 import * as utils from '../utils/utils.mjs';
 import { ethereum } from '../constants/constants.mjs'
+import { showInputDialog } from '../utils/dialog.mjs';
+import { notification } from '../utils/notifications.mjs';
 
 const network = ethereum.eip155WsTestnetNetwrk;
 let selectedWallet = null;  // 存储用户选择的钱包
@@ -74,7 +76,7 @@ async function selectWallet(wallet) {
     status.innerHTML = `已选择: ${wallet.info.name}`;
   }
 
-  alert(`已选择钱包: ${wallet.info.name}\n点击 "Connect" 按钮连接`);
+  notification.success(`已选择钱包: ${wallet.info.name}\n点击 "Connect" 按钮连接`);
 }
 
 /**
@@ -120,7 +122,7 @@ async function connect() {
 
 async function personalSign() {
   const { accounts, provider } = await connect();
-  const message = prompt("Please enter a message you want to sign: ", "is a test message.");
+  const message = await showInputDialog("Please enter a message you want to sign:", "is a test message.", "Message to sign");
   const params = [message || "is a test message.", accounts[0]];
   await utils.runMethod({
     method: "personal_sign",
@@ -132,7 +134,7 @@ async function personalSign() {
 }
 async function ethSign() {
   const { accounts, provider } = await connect();
-  const message = prompt("Please enter a message you want to sign: ", "is a test message.");
+  const message = await showInputDialog("Please enter a message you want to sign:", "is a test message.", "Message to sign");
   const params = [accounts[0], message || "is a test message."];
   await utils.runMethod({
     method: "eth_sign",
@@ -187,7 +189,7 @@ async function importNewEthereumChain() {
 }
 async function sendTransaction() {
   const { accounts, provider } = await connect();
-  const input = prompt("Please enter a valid destionation address: ", "0x372cC9e4Fa8E834237e106235e26A2fb7E9082D2");
+  const input = await showInputDialog("Please enter a valid destination address:", "0x372cC9e4Fa8E834237e106235e26A2fb7E9082D2", "0x...");
   const txParams = { to: input, from: accounts[0], data: "0x", value: "0x01", type: "0x2" }
   const params = [txParams];
   await utils.runMethod({
